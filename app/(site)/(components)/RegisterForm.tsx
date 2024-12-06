@@ -14,6 +14,11 @@ const RegisterForm = () => {
         console.log('Form Validation Failed:', errorInfo);
     };
 
+    const handleGoogleSignIn = (response: any) => {
+        console.log('Google OAuth Response:', response);
+        // Add your API call here to handle Google Sign-In
+    };
+
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
             <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
@@ -109,6 +114,9 @@ const RegisterForm = () => {
                         </Button>
                     </Form.Item>
                 </Form>
+
+                {/* Google Sign-In Button */}
+                <div id="google-signin-btn" className="w-full my-4"></div>
 
                 <div className="text-center mt-4">
                     <p className="text-sm text-gray-600">
