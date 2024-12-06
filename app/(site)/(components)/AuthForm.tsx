@@ -3,6 +3,13 @@
 import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { useEffect } from 'react';
+declare global {
+    interface Window {
+        google: any; // You can replace `any` with specific types if available.
+    }
+}
+
 
 const AuthForm = () => {
     const onFinish = (values: any) => {
@@ -13,6 +20,24 @@ const AuthForm = () => {
     const onFinishFailed = (errorInfo: any) => {
         console.log('Form Validation Failed:', errorInfo);
     };
+
+    const handleGoogleSignIn = (response: any) => {
+        console.log('Google OAuth Response:', response);
+        // Add your API call here to handle Google Sign-In
+    };
+
+    // useEffect(() => {
+    //     // Load Google OAuth library
+    //     window.google.accounts.id.initialize({
+    //         client_id: 'YOUR_GOOGLE_CLIENT_ID',
+    //         callback: handleGoogleSignIn,
+    //     });
+
+    //     window.google.accounts.id.renderButton(
+    //         document.getElementById('google-signin-btn'),
+    //         { theme: 'outline', size: 'large', width: '100%' } // Customize button style
+    //     );
+    // }, []);
 
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -81,6 +106,9 @@ const AuthForm = () => {
                         </Button>
                     </Form.Item>
                 </Form>
+
+                {/* Google Sign-In Button */}
+                <div id="google-signin-btn" className="w-full my-4"></div>
 
                 <div className="text-center mt-4">
                     <p className="text-sm text-gray-600">
