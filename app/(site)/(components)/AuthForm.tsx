@@ -3,13 +3,12 @@
 import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { useEffect } from 'react';
+
 declare global {
     interface Window {
         google: any; // You can replace `any` with specific types if available.
     }
 }
-
 
 const AuthForm = () => {
     const onFinish = (values: any) => {
@@ -26,24 +25,11 @@ const AuthForm = () => {
         // Add your API call here to handle Google Sign-In
     };
 
-    // useEffect(() => {
-    //     // Load Google OAuth library
-    //     window.google.accounts.id.initialize({
-    //         client_id: 'YOUR_GOOGLE_CLIENT_ID',
-    //         callback: handleGoogleSignIn,
-    //     });
-
-    //     window.google.accounts.id.renderButton(
-    //         document.getElementById('google-signin-btn'),
-    //         { theme: 'outline', size: 'large', width: '100%' } // Customize button style
-    //     );
-    // }, []);
-
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-100">
-            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-                <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-                    Sign In to Your Account
+        <div className="flex justify-center items-center h-screen bg-light">
+            <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-xl">
+                <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+                    Welcome Back
                 </h2>
 
                 <Form
@@ -51,11 +37,11 @@ const AuthForm = () => {
                     layout="vertical"
                     onFinish={onFinish}
                     onFinishFailed={onFinishFailed}
-                    className="space-y-4"
+                    className="space-y-6"
                 >
                     {/* Email Field */}
                     <Form.Item
-                        label="Email"
+                        label={<span className="text-lg text-gray-700">Email</span>}
                         name="email"
                         rules={[
                             {
@@ -69,14 +55,15 @@ const AuthForm = () => {
                         ]}
                     >
                         <Input
-                            prefix={<UserOutlined />}
+                            size="large"
+                            prefix={<UserOutlined className="text-gray-400" />}
                             placeholder="Enter your email"
                         />
                     </Form.Item>
 
                     {/* Password Field */}
                     <Form.Item
-                        label="Password"
+                        label={<span className="text-lg text-gray-700">Password</span>}
                         name="password"
                         rules={[
                             {
@@ -90,7 +77,8 @@ const AuthForm = () => {
                         ]}
                     >
                         <Input.Password
-                            prefix={<LockOutlined />}
+                            size="large"
+                            prefix={<LockOutlined className="text-gray-400" />}
                             placeholder="Enter your password"
                         />
                     </Form.Item>
@@ -100,7 +88,8 @@ const AuthForm = () => {
                         <Button
                             type="primary"
                             htmlType="submit"
-                            className="w-full"
+                            className="w-full text-lg font-medium"
+                            size="large"
                         >
                             Sign In
                         </Button>
@@ -108,9 +97,12 @@ const AuthForm = () => {
                 </Form>
 
                 {/* Google Sign-In Button */}
-                <div id="google-signin-btn" className="w-full my-4"></div>
+                <div
+                    id="google-signin-btn"
+                    className="w-full my-4 flex justify-center"
+                ></div>
 
-                <div className="text-center mt-4">
+                <div className="text-center mt-6">
                     <p className="text-sm text-gray-600">
                         Don’t have an account?{' '}
                         <Link href="/sign-up" className="text-blue-600 hover:underline">

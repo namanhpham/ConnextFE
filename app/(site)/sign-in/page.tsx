@@ -3,7 +3,7 @@ import AuthForm from '../(components)/AuthForm'
 
 export default function Home() {
   return (
-    <div>
+    <div className="bg-light h-screen flex items-center justify-center">
       <AuthForm />
     </div>
   )
