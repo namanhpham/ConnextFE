@@ -14,11 +14,12 @@ export const metadata: Metadata = {
 const theme = {
   components: {
     Button: {
-      colorPrimary: '#F7E7D4',
-      colorSecondary: '#F4C7C3',
+      colorPrimary: '#19b3a8',
+      colorSecondary: '#F5F5F5',
     },
     Menu: {
-      colorPrimary: '#F4C7C3',
+      colorPrimary: '#FFFFFF',
+      colorSecondary: '#F4C7C3',
     }
   },
 };
