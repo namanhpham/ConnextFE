@@ -15,11 +15,11 @@ const theme = {
   components: {
     Button: {
       colorPrimary: '#19b3a8',
-      colorSecondary: '#F5F5F5',
+      colorSecondary: '#F0F0F0',
     },
     Menu: {
-      colorPrimary: '#FFFFFF',
-      colorSecondary: '#F4C7C3',
+      colorPrimary: '#19b3a8',
+      colorSecondary: '#F0F0F0',
     }
   },
 };

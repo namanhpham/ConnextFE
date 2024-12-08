@@ -1,13 +1,15 @@
-'use client';
+// layout.tsx
+"use client";
 
 import React, { useState } from "react";
-import { ReactNode } from "react";
 import { Layout, Menu, Drawer, Button, Avatar, Dropdown } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
+import Link from "next/link";
+import { users } from "./mockData";
 
 const { Header, Sider, Content } = Layout;
 
-const UsersLayout = ({ children }: { children: ReactNode }) => {
+const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const userMenu = (
@@ -18,23 +20,18 @@ const UsersLayout = ({ children }: { children: ReactNode }) => {
   );
 
   return (
-    <Layout className="h-screen text-black ">
+    <Layout className="h-screen text-black">
       {/* Sidebar for larger screens */}
-      <Sider
-        breakpoint="md"
-        collapsedWidth="0"
-        className="bg-accent hidden md:block"
-        width={250}
-      >
-        <div className="text-text text-xl font-bold p-4">Chats</div>
+      <Sider breakpoint="md" collapsedWidth="0" className="bg-accent hidden md:block" width={250}>
+        <div className="text-xl font-bold p-4">Chats</div>
         <Menu
-            theme="dark"
-            mode="inline"
-            className="bg-primary text-text"
-          items={[
-            { key: "1", label: <span className="text-text">John Doe</span> },
-            { key: "2", label: <span className="text-text">Jane Smith</span> },
-          ]}
+          theme="dark"
+          mode="inline"
+          className="bg-accent"
+          items={users.map((user) => ({
+            key: user.id,
+            label: <Link href={`/users/${user.id}`}><span className="text-textGray">{user.name}</span></Link>,
+          }))}
         />
       </Sider>
 
@@ -49,25 +46,25 @@ const UsersLayout = ({ children }: { children: ReactNode }) => {
         <Menu
           theme="light"
           mode="inline"
-          className="bg-white text-text"
-          items={[
-            { key: "1", label: "John Doe" },
-            { key: "2", label: "Jane Smith" },
-          ]}
+          items={users.map((user) => ({
+            key: user.id,
+            label: <Link href={`/users/${user.id}`}><span className="text-textGray font-semibold">{user.name}</span></Link>,
+          }))}
         />
       </Drawer>
+
       {/* Main Layout */}
       <Layout>
         {/* Header */}
-        <Header className="bg-primary text-white flex items-center justify-between p-4">
+        <Header className="bg-primary text-white flex items-center justify-between p-4 border-b border-accent">
           <Button
             type="text"
             icon={<MenuOutlined />}
             className="text-white md:hidden"
             onClick={() => setIsDrawerOpen(true)}
           />
-          <h1 className="text-xl font-bold">Connext</h1>
-          <Dropdown overlay={userMenu} trigger={['click']}>
+          <h1 className="text-xl font-bold text-black">Connext</h1>
+          <Dropdown overlay={userMenu} trigger={["click"]}>
             <Avatar className="cursor-pointer" />
           </Dropdown>
         </Header>
