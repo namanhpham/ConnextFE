@@ -9,12 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#03122F",
-        secondary: "#19305C",
-        accent: "#413B61",
-        highlight: "#AE7DAC",
-        light: "#F3DADF",
-        warning: "#F1916D",
+        primary: "#F7E7D4", // Beige for the main sidebar and background
+        secondary: "#F4C7C3", // Muted pink for headers or highlights
+        accent: "#E89BA6", // Coral pink for action items
+        highlight: "#FFF8F4", // Off-white for chat bubbles
+        light: "#FFFFFF", // White for the background
+        text: "#4A4A4A", // Dark gray for improved readability
+        warning: "#FF6961", // Warmer red for warnings or errors
       },
     },
   },

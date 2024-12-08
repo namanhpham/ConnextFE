@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ConfigProvider } from 'antd';
+import AuthProvider from './context/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,9 +14,12 @@ export const metadata: Metadata = {
 const theme = {
   components: {
     Button: {
-      colorPrimary: '#03122F',
-      colorSecondary: '#19305C',
+      colorPrimary: '#F7E7D4',
+      colorSecondary: '#F4C7C3',
     },
+    Menu: {
+      colorPrimary: '#F4C7C3',
+    }
   },
 };
 
@@ -27,9 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ConfigProvider theme={theme}>
-          {children}
-        </ConfigProvider>
+        <AuthProvider>
+          <ConfigProvider theme={theme}>
+            {children}
+          </ConfigProvider>
+        </AuthProvider>
       </body>
     </html>
   )
