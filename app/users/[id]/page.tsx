@@ -17,7 +17,7 @@ const UserPage = ({ params }: { params: { id: string } }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Chat Header */}
-      <div className="bg-primary text-light p-4 shadow-md flex justify-between items-center">
+      <div className="bg-accent text-light p-4 shadow-md flex justify-between items-center">
         <h2 className="text-lg font-bold text-text">{user.name}</h2>
         <div className="flex space-x-4">
           <Button type="text" className="text-light hover:text-highlight">
@@ -59,7 +59,7 @@ const UserPage = ({ params }: { params: { id: string } }) => {
           size="large"
         />
         <Button type="primary" size="large">
-          Send
+          Send 
         </Button>
       </div>
     </div>
