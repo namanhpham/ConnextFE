@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ConfigProvider } from 'antd';
 import AuthProvider from './context/AuthContext';
+import { DrawerProvider } from './context/DrawerContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,6 +17,10 @@ const theme = {
     Button: {
       colorPrimary: '#19b3a8',
       colorSecondary: '#F0F0F0',
+      colorPrimaryHover: '#17a39b', // Custom hover color for primary buttons
+      colorSecondaryHover: '#e6e6e6', // Custom hover color for secondary buttons
+      colorPrimaryActive: '#17a39b', // Custom active color for primary buttons
+      colorSecondaryActive: '#e6e6e6', // Custom active color for secondary buttons
     },
     Menu: {
       colorPrimary: '#19b3a8',
@@ -33,9 +38,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <ConfigProvider theme={theme}>
-            {children}
-          </ConfigProvider>
+          <DrawerProvider>
+            <ConfigProvider theme={theme}>
+              {children}
+            </ConfigProvider>
+          </DrawerProvider>
         </AuthProvider>
       </body>
     </html>

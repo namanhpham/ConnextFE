@@ -1,7 +1,7 @@
 // mockData.ts
 export const users = [
-  { id: "1", name: "John Doe" },
-  { id: "2", name: "Jane Smith" },
+  { id: "1", name: "John Doe", avatar: "J" },
+  { id: "2", name: "Jane Smith", avatar: "J" },
 ];
 
 export const messages: { [key: string]: { id: number; text: string; sender: string }[] } = {
