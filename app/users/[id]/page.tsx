@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { messages, users } from "../mockData";
-import { Input, Button, Row, Col, Avatar } from "antd";
-import { MenuOutlined, SettingOutlined, PictureOutlined } from "@ant-design/icons";
+import { Input, Button, Row, Col, Avatar, Upload } from "antd";
+import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useDrawer } from "@/app/context/DrawerContext";
 
@@ -12,8 +12,9 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const { id } = params;
 
   const user = users.find((user) => user.id === id);
-  const [chatMessages, setChatMessages] = useState(messages[id] || []); // No more TypeScript error here
+  const [chatMessages, setChatMessages] = useState(messages[id] || []);
   const [newMessage, setNewMessage] = useState("");
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,22 +32,32 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim() === "") return;
+    if (newMessage.trim() === "" && imagePreviews.length === 0) return;
 
     const newChatMessage = {
       id: chatMessages.length + 1,
       text: newMessage,
+      imageUrls: imagePreviews,
       sender: "current",
     };
 
     setChatMessages([...chatMessages, newChatMessage]);
     setNewMessage("");
+    setImagePreviews([]);
+  };
+
+  const handleSendImage = (file: any) => {
+    setImagePreviews([...imagePreviews, URL.createObjectURL(file)]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
   };
 
   return (
@@ -98,7 +109,10 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
                           : "bg-accent text-textGray"
                       } p-3 rounded-lg max-w-xs`}
                     >
-                      {message.text ? message.text : <Image src={message.imageUrl || ""} alt="Sent image" width={150} height={150} className="rounded-lg" />}
+                      {message.text && <p>{message.text}</p>}
+                      {message.imageUrls && message.imageUrls.map((url, index) => (
+                        <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -110,19 +124,44 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
       </div>
 
       {/* Message Input */}
-      <div className="bg-primary p-4 flex items-center space-x-2">
-        <Input
-          placeholder="Type a message..."
-          className="flex-1"
-          size="large"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
-        />
-        <Button type="text" icon={<PictureOutlined />} size="large" />
-        <Button type="primary" size="large" onClick={handleSendMessage}>
-          Send 
-        </Button>
+      <div className="bg-primary p-4 flex flex-col space-y-2">
+        <div className="flex items-center space-x-2">
+          <Input
+            placeholder="Type a message..."
+            className="flex-1"
+            size="large"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <Upload
+            showUploadList={false}
+            beforeUpload={(file) => {
+              handleSendImage(file);
+              return false;
+            }}
+          >
+            <Button type="text" icon={<PictureOutlined />} size="large" />
+          </Upload>
+          <Button type="primary" size="large" onClick={handleSendMessage}>
+            Send 
+          </Button>
+        </div>
+        {imagePreviews.length > 0 && (
+          <div className="relative flex space-x-2">
+            {imagePreviews.map((preview, index) => (
+              <div key={index} className="relative">
+                <Image src={preview} alt="Preview" width={150} height={150} className="rounded-lg" />
+                <Button
+                  type="text"
+                  icon={<CloseOutlined />}
+                  className="absolute top-0 right-0"
+                  onClick={() => handleRemoveImage(index)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
