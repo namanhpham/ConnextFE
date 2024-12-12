@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { messages, users } from "../mockData";
 import { Input, Button, Row, Col, Avatar } from "antd";
-import { MenuOutlined, SettingOutlined } from "@ant-design/icons";
+import { MenuOutlined, SettingOutlined, PictureOutlined } from "@ant-design/icons";
+import Image from "next/image";
 import { useDrawer } from "@/app/context/DrawerContext";
 
 const UserPage = ({ params }: { params: { id: string }; }) => {
@@ -11,7 +12,15 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const { id } = params;
 
   const user = users.find((user) => user.id === id);
-  const chatMessages = messages[id] || []; // No more TypeScript error here
+  const [chatMessages, setChatMessages] = useState(messages[id] || []); // No more TypeScript error here
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages]);
 
   if (!user) {
     return <div className="p-8 text-center text-gray-500">User not found.</div>;
@@ -19,6 +28,25 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
 
   const getUser = (sender: string) => {
     return sender === "current" ? { name: "You", avatar: "Y" } : user;
+  };
+
+  const handleSendMessage = () => {
+    if (newMessage.trim() === "") return;
+
+    const newChatMessage = {
+      id: chatMessages.length + 1,
+      text: newMessage,
+      sender: "current",
+    };
+
+    setChatMessages([...chatMessages, newChatMessage]);
+    setNewMessage("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
   };
 
   return (
@@ -70,7 +98,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
                           : "bg-accent text-textGray"
                       } p-3 rounded-lg max-w-xs`}
                     >
-                      {message.text}
+                      {message.text ? message.text : <Image src={message.imageUrl || ""} alt="Sent image" width={150} height={150} className="rounded-lg" />}
                     </div>
                   </div>
                 </div>
@@ -78,6 +106,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
             </Row>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
@@ -86,8 +115,12 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
           placeholder="Type a message..."
           className="flex-1"
           size="large"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
-        <Button type="primary" size="large">
+        <Button type="text" icon={<PictureOutlined />} size="large" />
+        <Button type="primary" size="large" onClick={handleSendMessage}>
           Send 
         </Button>
       </div>
