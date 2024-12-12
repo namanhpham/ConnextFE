@@ -1,16 +1,15 @@
-// layout.tsx
 "use client";
 
-import React, { useState } from "react";
-import { Layout, Menu, Drawer, Button, Avatar, Dropdown } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
+import React from "react";
+import { Layout, Menu, Drawer, Avatar, Dropdown } from "antd";
 import Link from "next/link";
-import { users } from "./mockData";
+import { users, messages } from "./mockData";
+import { useDrawer } from "../context/DrawerContext";
 
-const { Header, Sider, Content } = Layout;
+const { Sider, Content } = Layout;
 
 const UsersLayout = ({ children }: { children: React.ReactNode }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
 
   const userMenu = (
     <Menu>
@@ -19,8 +18,23 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
     </Menu>
   );
 
+  const getLastMessageTime = (userId: string) => {
+    const userMessages = messages[userId];
+    if (userMessages && userMessages.length > 0) {
+      return new Date().toLocaleTimeString(); // Replace with actual timestamp logic
+    }
+    return "";
+  };
+
   return (
     <Layout className="h-screen text-black">
+      {/* Smaller Sidebar for profile navigation */}
+      <Sider width={80} className="bg-primary flex flex-col items-center p-4 border-r">
+        <Dropdown overlay={userMenu} trigger={["click"]}>
+          <Avatar className="cursor-pointer mb-4" />
+        </Dropdown>
+      </Sider>
+
       {/* Sidebar for larger screens */}
       <Sider breakpoint="md" collapsedWidth="0" className="bg-accent hidden md:block" width={250}>
         <div className="text-xl font-bold p-4">Chats</div>
@@ -30,7 +44,16 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           className="bg-accent"
           items={users.map((user) => ({
             key: user.id,
-            label: <Link href={`/users/${user.id}`}><span className="text-textGray">{user.name}</span></Link>,
+            label: (
+              <Link href={`/users/${user.id}`}>
+                <div className="flex items-center space-x-2">
+                  <Avatar>{user.name.charAt(0)}</Avatar>
+                  <div className="">
+                    <span className="text-textGray block truncate">{user.name}</span>
+                  </div>
+                </div>
+              </Link>
+            ),
           }))}
         />
       </Sider>
@@ -48,27 +71,22 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           mode="inline"
           items={users.map((user) => ({
             key: user.id,
-            label: <Link href={`/users/${user.id}`}><span className="text-textGray font-semibold">{user.name}</span></Link>,
+            label: (
+              <Link href={`/users/${user.id}`}>
+                <div className="flex items-center space-x-2" onClick={() => setIsDrawerOpen(false)}>
+                  <Avatar>{user.name.charAt(0)}</Avatar>
+                  <div className="flex-1">
+                    <span className="text-textGray font-semibold block truncate">{user.name}</span>
+                  </div>
+                </div>
+              </Link>
+            ),
           }))}
         />
       </Drawer>
 
       {/* Main Layout */}
       <Layout>
-        {/* Header */}
-        <Header className="bg-primary text-white flex items-center justify-between p-4 border-b border-accent">
-          <Button
-            type="text"
-            icon={<MenuOutlined />}
-            className="text-white md:hidden"
-            onClick={() => setIsDrawerOpen(true)}
-          />
-          <h1 className="text-xl font-bold text-black">Connext</h1>
-          <Dropdown overlay={userMenu} trigger={["click"]}>
-            <Avatar className="cursor-pointer" />
-          </Dropdown>
-        </Header>
-
         {/* Main Content */}
         <Content className="overflow-y-auto">{children}</Content>
       </Layout>
