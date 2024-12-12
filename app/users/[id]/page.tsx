@@ -15,6 +15,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const [chatMessages, setChatMessages] = useState(messages[id] || []);
   const [newMessage, setNewMessage] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,22 +33,35 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim() === "" && imagePreviews.length === 0) return;
+    if (newMessage.trim() === "" && imagePreviews.length === 0 && videoPreviews.length === 0) return;
 
     const newChatMessage = {
       id: chatMessages.length + 1,
       text: newMessage,
       imageUrls: imagePreviews,
+      videoUrls: videoPreviews,
       sender: "current",
     };
 
     setChatMessages([...chatMessages, newChatMessage]);
     setNewMessage("");
     setImagePreviews([]);
+    setVideoPreviews([]);
   };
 
-  const handleSendImage = (file: any) => {
-    setImagePreviews([...imagePreviews, URL.createObjectURL(file)]);
+  const handleUpload = (file: any) => {
+    if (file.size > 25 * 1024 * 1024) {
+      alert("File size should be less than 25MB");
+      return false;
+    }
+
+    if (file.type.startsWith("image/")) {
+      setImagePreviews([...imagePreviews, URL.createObjectURL(file)]);
+    } else if (file.type.startsWith("video/")) {
+      setVideoPreviews([...videoPreviews, URL.createObjectURL(file)]);
+    }
+
+    return false;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -58,6 +72,10 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
 
   const handleRemoveImage = (index: number) => {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setVideoPreviews(videoPreviews.filter((_, i) => i !== index));
   };
 
   return (
@@ -113,6 +131,12 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
                       {message.imageUrls && message.imageUrls.map((url, index) => (
                         <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
                       ))}
+                      {message.videoUrls && message.videoUrls.map((url, index) => (
+                        <video key={index} controls width="150" className="rounded-lg">
+                          <source src={url} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -136,10 +160,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
           />
           <Upload
             showUploadList={false}
-            beforeUpload={(file) => {
-              handleSendImage(file);
-              return false;
-            }}
+            beforeUpload={handleUpload}
           >
             <Button type="text" icon={<PictureOutlined />} size="large" />
           </Upload>
@@ -157,6 +178,24 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
                   icon={<CloseOutlined />}
                   className="absolute top-0 right-0"
                   onClick={() => handleRemoveImage(index)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        {videoPreviews.length > 0 && (
+          <div className="relative flex space-x-2">
+            {videoPreviews.map((preview, index) => (
+              <div key={index} className="relative">
+                <video controls width="150" className="rounded-lg">
+                  <source src={preview} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <Button
+                  type="text"
+                  icon={<CloseOutlined />}
+                  className="absolute top-0 right-0"
+                  onClick={() => handleRemoveVideo(index)}
                 />
               </div>
             ))}

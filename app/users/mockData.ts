@@ -4,7 +4,7 @@ export const users = [
   { id: "2", name: "Jane Smith", avatar: "J" },
 ];
 
-export const messages: { [key: string]: { id: number; text?: string; imageUrls?: string[]; sender: string }[] } = {
+export const messages: { [key: string]: { id: number; text?: string; imageUrls?: string[]; videoUrls?: string[]; sender: string }[] } = {
   "1": [
     { id: 1, text: "Hi John!", sender: "current" },
     { id: 2, text: "Hey! How are you?", sender: "other" },
@@ -17,6 +17,7 @@ export const messages: { [key: string]: { id: number; text?: string; imageUrls?:
     { id: 9, text: "Sounds good to me.", sender: "other" },
     { id: 10, text: "Great! See you then.", sender: "current" },
     { id: 11, imageUrls: ["https://via.placeholder.com/150"], sender: "other" },
+    { id: 12, videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"], sender: "current" },
   ],
   "2": [
     { id: 1, text: "Hello Jane!", sender: "current" },
@@ -30,5 +31,6 @@ export const messages: { [key: string]: { id: number; text?: string; imageUrls?:
     { id: 9, text: "Next week works for me.", sender: "other" },
     { id: 10, text: "Perfect! Let's do it.", sender: "current" },
     { id: 11, imageUrls: ["https://via.placeholder.com/150"], sender: "current" },
+    { id: 12, videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"], sender: "other" },
   ],
 };
