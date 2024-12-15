@@ -4,7 +4,7 @@ import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { authLogin } from '../../api/apiService'; // Import the authLogin function
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 
 declare global {
     interface Window {
@@ -13,14 +13,21 @@ declare global {
 }
 
 const AuthForm = () => {
+    const router = useRouter();
+
     const onFinish = async (values: any) => {
         console.log('Form Submitted:', values);
         try {
             const response = await authLogin(values.email, values.password);
             console.log('Login Successful:', response);
-            // Handle successful login (e.g., redirect, store token, etc.)
-            // router.push('/users');
-    
+            // Store user data in localStorage
+            localStorage.setItem('username', response.user.username);
+            localStorage.setItem('email', response.user.email);
+            localStorage.setItem('role', response.user.role);
+            localStorage.setItem('avatarUrl', response.avatarUrl);
+            localStorage.setItem('nickName', response.nickName);
+            // Redirect to user page
+            router.push('/users');
         } catch (error) {
             console.error('Login Failed:', error);
             // Handle login failure (e.g., show error message)

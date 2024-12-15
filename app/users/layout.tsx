@@ -1,20 +1,39 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Layout, Menu, Drawer, Avatar, Dropdown } from "antd";
 import Link from "next/link";
 import { users, messages } from "./mockData";
 import { useDrawer } from "../context/DrawerContext";
+import { authLogout } from "../api/apiService";
+import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 
 const { Sider, Content } = Layout;
 
 const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    setAvatarUrl(localStorage.getItem("avatarUrl"));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authLogout();
+      localStorage.clear();
+      // Redirect to sign-in page
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Logout Failed:", error);
+    }
+  };
 
   const userMenu = (
     <Menu>
       <Menu.Item key="profile">Profile Settings</Menu.Item>
-      <Menu.Item key="logout">Logout</Menu.Item>
+      <Menu.Item key="logout" onClick={handleLogout}>Logout</Menu.Item>
     </Menu>
   );
 
@@ -31,7 +50,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Smaller Sidebar for profile navigation */}
       <Sider width={80} className="bg-primary flex flex-col items-center p-4 border-r">
         <Dropdown overlay={userMenu} trigger={["click"]}>
-          <Avatar className="cursor-pointer mb-4" />
+          <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
         </Dropdown>
       </Sider>
 
@@ -45,7 +64,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           items={users.map((user) => ({
             key: user.id,
             label: (
-              <Link href={`/users/${user.id}`}>
+              <Link href={`/users/chat/${user.id}`}>
                 <div className="flex items-center space-x-2">
                   <Avatar>{user.name.charAt(0)}</Avatar>
                   <div className="">
