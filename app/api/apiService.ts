@@ -1,5 +1,9 @@
 import axios from "axios";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8000/api",
   timeout: 30000,
@@ -35,4 +39,9 @@ const authLogout = async () => {
     return response.data;
 };
 
-export { authLogin, authRegister, authLogout, axiosInstance };
+const updateProfile = async (data: any, userId: string) => {
+    const response = await axiosInstance.patch(`/users/${userId}`, data);
+    return response.data;
+}
+
+export { authLogin, authRegister, authLogout, updateProfile, axiosInstance };

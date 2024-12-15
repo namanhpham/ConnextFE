@@ -1,6 +1,6 @@
 'use client';
 
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { authRegister } from '../../api/apiService'; // Import the authRegister function
@@ -18,10 +18,17 @@ const RegisterForm = () => {
             localStorage.setItem('username', response.user.username);
             localStorage.setItem('email', response.user.email);
             localStorage.setItem('role', response.user.role);
-            localStorage.setItem('avatarUrl', response.avatarUrl);
-            localStorage.setItem('nickName', response.nickName);
+            localStorage.setItem('nickName', response.user.nickName);
+            localStorage.setItem('userId', response.user.userId);
+            const avatarUrl = response.user.avatarUrl;
+            if (avatarUrl) {
+                localStorage.setItem('avatarUrl', avatarUrl);
+            } else {
+                localStorage.setItem('avatarUrl', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwdIVSqaMsmZyDbr9mDPk06Nss404fosHjLg&s');
+            }
             // Redirect to user page
             router.push('/users');
+            message.success('Registration Successful');
         } catch (error) {
             console.error('Registration Failed:', error);
             // Handle registration failure (e.g., show error message)
