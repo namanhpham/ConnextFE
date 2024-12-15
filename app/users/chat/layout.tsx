@@ -7,7 +7,6 @@ import { users } from "../mockData";
 import { useDrawer } from "@/app/context/DrawerContext";
 import { authLogout } from "@/app/api/apiService";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
-import { MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons"; // Import icons
 
 const { Sider, Content } = Layout;
 

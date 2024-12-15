@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Drawer, Avatar, Dropdown, Button } from "antd";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // Import usePathname from next/navigation
 import { users, messages } from "./mockData";
 import { useDrawer } from "../context/DrawerContext";
 import { authLogout } from "../api/apiService";
@@ -15,6 +16,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname(); // Get the current pathname
 
   useEffect(() => {
     const storedAvatarUrl = localStorage.getItem("avatarUrl");
@@ -59,9 +61,24 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
         </Dropdown>
         <div className="flex flex-col items-center space-y-4 mt-auto">
-          <Button type="text" icon={<MessageOutlined />} onClick={() => router.push("/users/chat")} />
-          <Button type="text" icon={<UserOutlined />} onClick={() => router.push("/users/friends")} />
-          <Button type="text" icon={<TeamOutlined />} onClick={() => router.push("/users/groups")} />
+          <Button
+            type="text"
+            icon={<MessageOutlined />}
+            onClick={() => router.push("/users/chat")}
+            className={pathname.startsWith("/users/chat") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+          />
+          <Button
+            type="text"
+            icon={<UserOutlined />}
+            onClick={() => router.push("/users/friends")}
+            className={pathname.startsWith("/users/friends") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+          />
+          <Button
+            type="text"
+            icon={<TeamOutlined />}
+            onClick={() => router.push("/users/groups")}
+            className={pathname.startsWith("/users/groups") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+          />
         </div>
       </Sider>
 
