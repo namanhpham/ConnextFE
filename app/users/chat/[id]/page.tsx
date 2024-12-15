@@ -6,6 +6,7 @@ import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@
 import Image from "next/image";
 import { messages, users } from "../../mockData";
 import { useDrawer } from "@/app/context/DrawerContext";
+import socketHelper from "@/app/utils/socketHelper";
 
 const { Content } = Layout;
 
@@ -19,6 +20,18 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    socketHelper.connect("http://localhost:3000"); // cái này t sửa thành env sau nhé t buồn ngủ quá :(
+
+    socketHelper.on("newMessage", (message) => {
+      setChatMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    return () => {
+      socketHelper.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -45,7 +58,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
       sender: "current",
     };
 
-    setChatMessages([...chatMessages, newChatMessage]);
+    socketHelper.emit("sendMessage", newChatMessage);
     setNewMessage("");
     setImagePreviews([]);
     setVideoPreviews([]);
