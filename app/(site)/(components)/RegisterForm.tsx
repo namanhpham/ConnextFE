@@ -4,14 +4,24 @@ import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { authRegister } from '../../api/apiService'; // Import the authRegister function
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 
 const RegisterForm = () => {
+    const router = useRouter();
+
     const onFinish = async (values: any) => {
         console.log('Registration Successful:', values);
         try {
             const response = await authRegister(values.email, values.password, values.username);
             console.log('Registration Successful:', response);
-            // Handle successful registration (e.g., redirect, show success message, etc.)
+            // Store user data in localStorage
+            localStorage.setItem('username', response.user.username);
+            localStorage.setItem('email', response.user.email);
+            localStorage.setItem('role', response.user.role);
+            localStorage.setItem('avatarUrl', response.avatarUrl);
+            localStorage.setItem('nickName', response.nickName);
+            // Redirect to user page
+            router.push('/users');
         } catch (error) {
             console.error('Registration Failed:', error);
             // Handle registration failure (e.g., show error message)

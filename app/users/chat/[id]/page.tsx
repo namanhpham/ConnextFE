@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { messages, users } from "../mockData";
+import { messages, users } from "../../mockData";
 import { Input, Button, Row, Col, Avatar, Upload } from "antd";
 import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
 import Image from "next/image";
