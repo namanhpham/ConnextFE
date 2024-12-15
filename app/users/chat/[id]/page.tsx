@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { messages, users } from "../../mockData";
-import { Input, Button, Row, Col, Avatar, Upload } from "antd";
+import { Layout, Input, Button, Row, Col, Avatar, Upload } from "antd";
 import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import { messages, users } from "../../mockData";
 import { useDrawer } from "@/app/context/DrawerContext";
+
+const { Content } = Layout;
 
 const UserPage = ({ params }: { params: { id: string }; }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
@@ -79,130 +81,130 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Chat Header */}
-      <div className="bg-primary border-b p-4 shadow-md flex justify-between items-center">
-        <Button
-          type="text"
-          icon={<MenuOutlined style={{ color: "#19b3a8" }} />}
-          className="text-white md:hidden"
-          onClick={() => {
-            setIsDrawerOpen(true);
-            console.log('Open drawer');
-            console.log("current drawer state: ", isDrawerOpen);
-          }}
-        />
-        <h2 className="text-lg font-bold text-textGray">{user.name}</h2>
-        <div className="flex space-x-4 items-center">
-          <Input
-            placeholder="Search..."
-            size="small"
-          />
+      <div className="h-full flex flex-col">
+        {/* Chat Header */}
+        <div className="bg-primary border-b p-4 shadow-md flex justify-between items-center">
           <Button
             type="text"
-            icon={<SettingOutlined />}
-            className="text-textGray hover:text-highlight"
+            icon={<MenuOutlined style={{ color: "#19b3a8" }} />}
+            className="text-white md:hidden"
+            onClick={() => {
+              setIsDrawerOpen(true);
+              console.log('Open drawer');
+              console.log("current drawer state: ", isDrawerOpen);
+            }}
           />
+          <h2 className="text-lg font-bold text-textGray">{user.name}</h2>
+          <div className="flex space-x-4 items-center">
+            <Input
+              placeholder="Search..."
+              size="small"
+            />
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              className="text-textGray hover:text-highlight"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-primary space-y-4">
-        {chatMessages.map((message) => {
-          const messageUser = getUser(message.sender);
-          return (
-            <Row
-              key={message.id}
-              justify={message.sender === "current" ? "end" : "start"}
-            >
-              <Col>
-                <div className={`flex items-start space-x-1 ${message.sender === "current" ? "flex-row-reverse" : ""}`}>
-                  {message.sender !== "current" && <Avatar>{messageUser.avatar}</Avatar>}
-                  <div>
-                    {message.sender !== "current" && <div className="text-xs text-gray-500 pb-1">{messageUser.name}</div>}
-                    <div
-                      className={`font-semibold ${
-                        message.sender === "current"
-                          ? "bg-secondary text-light"
-                          : "bg-accent text-textGray"
-                      } p-3 rounded-lg max-w-xs`}
-                    >
-                      {message.text && <p>{message.text}</p>}
-                      {message.imageUrls && message.imageUrls.map((url, index) => (
-                        <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
-                      ))}
-                      {message.videoUrls && message.videoUrls.map((url, index) => (
-                        <video key={index} controls width="150" className="rounded-lg">
-                          <source src={url} type="video/mp4" />
-                          Your browser does not support the video tag.
-                        </video>
-                      ))}
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto p-4 bg-primary space-y-4">
+          {chatMessages.map((message) => {
+            const messageUser = getUser(message.sender);
+            return (
+              <Row
+                key={message.id}
+                justify={message.sender === "current" ? "end" : "start"}
+              >
+                <Col>
+                  <div className={`flex items-start space-x-1 ${message.sender === "current" ? "flex-row-reverse" : ""}`}>
+                    {message.sender !== "current" && <Avatar>{messageUser.avatar}</Avatar>}
+                    <div>
+                      {message.sender !== "current" && <div className="text-xs text-gray-500 pb-1">{messageUser.name}</div>}
+                      <div
+                        className={`font-semibold ${
+                          message.sender === "current"
+                            ? "bg-secondary text-light"
+                            : "bg-accent text-textGray"
+                        } p-3 rounded-lg max-w-xs`}
+                      >
+                        {message.text && <p>{message.text}</p>}
+                        {message.imageUrls && message.imageUrls.map((url, index) => (
+                          <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
+                        ))}
+                        {message.videoUrls && message.videoUrls.map((url, index) => (
+                          <video key={index} controls width="150" className="rounded-lg">
+                            <source src={url} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Col>
-            </Row>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Message Input */}
-      <div className="bg-primary p-4 flex flex-col space-y-2">
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Type a message..."
-            className="flex-1"
-            size="large"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          <Upload
-            showUploadList={false}
-            beforeUpload={handleUpload}
-          >
-            <Button type="text" icon={<PictureOutlined />} size="large" />
-          </Upload>
-          <Button type="primary" size="large" onClick={handleSendMessage}>
-            Send 
-          </Button>
+                </Col>
+              </Row>
+            );
+          })}
+          <div ref={messagesEndRef} />
         </div>
-        {imagePreviews.length > 0 && (
-          <div className="relative flex space-x-2">
-            {imagePreviews.map((preview, index) => (
-              <div key={index} className="relative">
-                <Image src={preview} alt="Preview" width={150} height={150} className="rounded-lg" />
-                <Button
-                  type="text"
-                  icon={<CloseOutlined />}
-                  className="absolute top-0 right-0"
-                  onClick={() => handleRemoveImage(index)}
-                />
-              </div>
-            ))}
+
+        {/* Message Input */}
+        <div className="bg-primary p-4 flex flex-col space-y-2">
+          <div className="flex items-center space-x-2">
+            <Input
+              placeholder="Type a message..."
+              className="flex-1"
+              size="large"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <Upload
+              showUploadList={false}
+              beforeUpload={handleUpload}
+            >
+              <Button type="text" icon={<PictureOutlined />} size="large" />
+            </Upload>
+            <Button type="primary" size="large" onClick={handleSendMessage}>
+              Send 
+            </Button>
           </div>
-        )}
-        {videoPreviews.length > 0 && (
-          <div className="relative flex space-x-2">
-            {videoPreviews.map((preview, index) => (
-              <div key={index} className="relative">
-                <video controls width="150" className="rounded-lg">
-                  <source src={preview} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-                <Button
-                  type="text"
-                  icon={<CloseOutlined />}
-                  className="absolute top-0 right-0"
-                  onClick={() => handleRemoveVideo(index)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+          {imagePreviews.length > 0 && (
+            <div className="relative flex space-x-2">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <Image src={preview} alt="Preview" width={150} height={150} className="rounded-lg" />
+                  <Button
+                    type="text"
+                    icon={<CloseOutlined />}
+                    className="absolute top-0 right-0"
+                    onClick={() => handleRemoveImage(index)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          {videoPreviews.length > 0 && (
+            <div className="relative flex space-x-2">
+              {videoPreviews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <video controls width="150" className="rounded-lg">
+                    <source src={preview} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <Button
+                    type="text"
+                    icon={<CloseOutlined />}
+                    className="absolute top-0 right-0"
+                    onClick={() => handleRemoveVideo(index)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
   );
 };
 

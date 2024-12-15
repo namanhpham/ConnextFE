@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Layout, Menu, Drawer, Avatar, Dropdown, Button } from "antd";
+import { Layout, Menu, Avatar, Dropdown, Button, Drawer } from "antd";
 import Link from "next/link";
-import { users, messages } from "./mockData";
-import { useDrawer } from "../context/DrawerContext";
-import { authLogout } from "../api/apiService";
+import { users } from "../mockData";
+import { useDrawer } from "@/app/context/DrawerContext";
+import { authLogout } from "@/app/api/apiService";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import { MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons"; // Import icons
 
 const { Sider, Content } = Layout;
 
-const UsersLayout = ({ children }: { children: React.ReactNode }) => {
+const ChatLayout = ({ children }: { children: React.ReactNode }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
@@ -43,26 +43,30 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
     </Menu>
   );
 
-  const getLastMessageTime = (userId: string) => {
-    const userMessages = messages[userId];
-    if (userMessages && userMessages.length > 0) {
-      return new Date().toLocaleTimeString(); // Replace with actual timestamp logic
-    }
-    return "";
-  };
-
   return (
     <Layout className="h-screen text-black">
-      {/* Smaller Sidebar for profile navigation */}
-      <Sider width={80} className="bg-primary flex flex-col items-center p-4 border-r">
-        <Dropdown overlay={userMenu} trigger={["click"]}>
-          <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
-        </Dropdown>
-        <div className="flex flex-col items-center space-y-4 mt-auto">
-          <Button type="text" icon={<MessageOutlined />} onClick={() => router.push("/users/chat")} />
-          <Button type="text" icon={<UserOutlined />} onClick={() => router.push("/users/friends")} />
-          <Button type="text" icon={<TeamOutlined />} onClick={() => router.push("/users/groups")} />
-        </div>
+
+      {/* Sidebar for larger screens */}
+      <Sider breakpoint="md" collapsedWidth="0" className="bg-accent hidden md:block" width={250}>
+        <div className="text-xl font-bold p-4">Chats</div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          className="bg-accent"
+          items={users.map((user) => ({
+            key: user.id,
+            label: (
+              <Link href={`/users/chat/${user.id}`}>
+                <div className="flex items-center space-x-2">
+                  <Avatar>{user.name.charAt(0)}</Avatar>
+                  <div className="">
+                    <span className="text-textGray block truncate">{user.name}</span>
+                  </div>
+                </div>
+              </Link>
+            ),
+          }))}
+        />
       </Sider>
 
       {/* Drawer for smaller screens */}
@@ -101,4 +105,4 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default UsersLayout;
+export default ChatLayout;

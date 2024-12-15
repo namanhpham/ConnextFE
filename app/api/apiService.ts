@@ -39,9 +39,9 @@ const authLogout = async () => {
     return response.data;
 };
 
-const updateProfile = async (data: any) => {
-    const response = await axiosInstance.put("/users/profile", data);
+const updateProfile = async (data: any, userId: string) => {
+    const response = await axiosInstance.patch(`/users/${userId}`, data);
     return response.data;
 }
 
-export { authLogin, authRegister, authLogout, axiosInstance };
+export { authLogin, authRegister, authLogout, updateProfile, axiosInstance };
