@@ -3,20 +3,23 @@
 import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { authRegister } from '../../api/apiService'; // Import the authRegister function
 
 const RegisterForm = () => {
-    const onFinish = (values: any) => {
+    const onFinish = async (values: any) => {
         console.log('Registration Successful:', values);
-        // Replace with your registration logic (e.g., API call)
+        try {
+            const response = await authRegister(values.email, values.password, values.username);
+            console.log('Registration Successful:', response);
+            // Handle successful registration (e.g., redirect, show success message, etc.)
+        } catch (error) {
+            console.error('Registration Failed:', error);
+            // Handle registration failure (e.g., show error message)
+        }
     };
 
     const onFinishFailed = (errorInfo: any) => {
         console.log('Form Validation Failed:', errorInfo);
-    };
-
-    const handleGoogleSignIn = (response: any) => {
-        console.log('Google OAuth Response:', response);
-        // Add your API call here to handle Google Sign-In
     };
 
     return (
@@ -33,6 +36,24 @@ const RegisterForm = () => {
                     onFinishFailed={onFinishFailed}
                     className="space-y-6"
                 >
+                    {/* Username Field */}
+                    <Form.Item
+                        label={<span className="text-lg text-gray-700">Username</span>}
+                        name="username"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your username!',
+                            },
+                        ]}
+                    >
+                        <Input
+                            size="large"
+                            prefix={<UserOutlined className="text-gray-400" />}
+                            placeholder="Enter your username"
+                        />
+                    </Form.Item>
+
                     {/* Email Field */}
                     <Form.Item
                         label={<span className="text-lg text-gray-700">Email</span>}
@@ -64,10 +85,10 @@ const RegisterForm = () => {
                                 required: true,
                                 message: 'Please enter your password!',
                             },
-                            {
-                                min: 6,
-                                message: 'Password must be at least 6 characters!',
-                            },
+                            // {
+                            //     min: 6,
+                            //     message: 'Password must be at least 6 characters!',
+                            // },
                         ]}
                     >
                         <Input.Password

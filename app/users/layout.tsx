@@ -72,8 +72,8 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           items={users.map((user) => ({
             key: user.id,
             label: (
-              <Link href={`/users/${user.id}`}>
-                <div className="flex items-center space-x-2" onClick={() => setIsDrawerOpen(false)}>
+              <Link href={`/users/${user.id}`} onClick={() => setIsDrawerOpen(false)}>
+                <div className="flex items-center space-x-2">
                   <Avatar>{user.name.charAt(0)}</Avatar>
                   <div className="flex-1">
                     <span className="text-textGray font-semibold block truncate">{user.name}</span>

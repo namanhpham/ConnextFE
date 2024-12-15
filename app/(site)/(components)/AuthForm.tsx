@@ -3,6 +3,8 @@
 import { Form, Input, Button } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { authLogin } from '../../api/apiService'; // Import the authLogin function
+import { useRouter } from 'next/router';
 
 declare global {
     interface Window {
@@ -11,9 +13,18 @@ declare global {
 }
 
 const AuthForm = () => {
-    const onFinish = (values: any) => {
+    const onFinish = async (values: any) => {
         console.log('Form Submitted:', values);
-        // Replace with your authentication logic (e.g., API call)
+        try {
+            const response = await authLogin(values.email, values.password);
+            console.log('Login Successful:', response);
+            // Handle successful login (e.g., redirect, store token, etc.)
+            // router.push('/users');
+    
+        } catch (error) {
+            console.error('Login Failed:', error);
+            // Handle login failure (e.g., show error message)
+        }
     };
 
     const onFinishFailed = (errorInfo: any) => {
@@ -70,10 +81,10 @@ const AuthForm = () => {
                                 required: true,
                                 message: 'Please enter your password!',
                             },
-                            {
-                                min: 6,
-                                message: 'Password must be at least 6 characters!',
-                            },
+                            // {
+                            //     min: 6,
+                            //     message: 'Password must be at least 6 characters!',
+                            // },
                         ]}
                     >
                         <Input.Password
