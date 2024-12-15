@@ -30,9 +30,13 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleProfileClick = () => {
+    router.push("/users/profile");
+  };
+
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile">Profile Settings</Menu.Item>
+      <Menu.Item key="profile" onClick={handleProfileClick}>Profile Settings</Menu.Item>
       <Menu.Item key="logout" onClick={handleLogout}>Logout</Menu.Item>
     </Menu>
   );
