@@ -5,7 +5,8 @@ import { Form, Input, Button, DatePicker, Upload, Avatar, Layout, Menu, Dropdown
 import { UploadOutlined, MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import moment from "moment"; // Import moment for date handling
-import { updateProfile, authLogout } from "@/app/api/apiService";
+import { authApiService } from "@/app/api/apiService";
+import { uploadToS3 } from "../api/utils/uploadImg";
 
 const { Sider, Content } = Layout;
 
@@ -31,13 +32,14 @@ const UserProfile = () => {
     setAvatarUrl(storedAvatarUrl || defaultAvatarUrl);
   }, [form]);
 
-  const handleAvatarChange = (file: any) => {
+  const handleAvatarChange = async (file: File) => {
     if (file.size > 25 * 1024 * 1024) {
       message.error("File size should be less than 25MB");
       return false;
     }
 
-    const url = URL.createObjectURL(file);
+    const response = await uploadToS3(file);
+    const url = response.fileUrl;
     setAvatarUrl(url);
     message.success("Avatar uploaded successfully");
     return false;
@@ -60,7 +62,7 @@ const UserProfile = () => {
     };
     try {
       if (userId) {
-        await updateProfile(profileData, userId);
+        await authApiService.updateProfile(profileData, userId);
         message.success("Profile updated successfully");
       } else {
         console.error("User ID is null");
@@ -81,7 +83,7 @@ const UserProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await authLogout();
+      await authApiService.authLogout();
       localStorage.clear();
       // Redirect to sign-in page
       router.push("/sign-in");
