@@ -1,15 +1,5 @@
-import axios from "axios";
-
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api",
-  timeout: 30000,
-});
-
-axiosInstance.defaults.withCredentials = true;
+import { axiosInstance } from "./axiosInstance";
+import * as userApiService from "./users/userApiService";
 
 const authLogin = async (email: string, password: string) => {
   const response = await axiosInstance.post("/auth/sign-in", {
@@ -35,13 +25,13 @@ const authRegister = async (
 };
 
 const authLogout = async () => {
-    const response = await axiosInstance.post("/auth/logout");
-    return response.data;
+  const response = await axiosInstance.post("/auth/logout");
+  return response.data;
 };
 
 const updateProfile = async (data: any, userId: string) => {
-    const response = await axiosInstance.patch(`/users/${userId}`, data);
-    return response.data;
-}
+  const response = await axiosInstance.patch(`/users/${userId}`, data);
+  return response.data;
+};
 
-export { authLogin, authRegister, authLogout, updateProfile, axiosInstance };
+export { authLogin, authRegister, authLogout, updateProfile, userApiService };
