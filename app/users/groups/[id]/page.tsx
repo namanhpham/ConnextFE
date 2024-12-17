@@ -4,18 +4,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { Layout, Input, Button, Row, Col, Avatar, Upload } from "antd";
 import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
 import Image from "next/image";
-import { messages, users } from "../../mockData";
+import { groupMessages, groups } from "../../mockData";
 import { useDrawer } from "@/app/context/DrawerContext";
-import { initializeSocket, getSocket } from "@/app/utils/socket"; // Import initializeSocket
+import { initializeSocket, getSocket } from "@/app/utils/socket";
 
 const { Content } = Layout;
 
-const UserPage = ({ params }: { params: { id: string }; }) => {
+const GroupPage = ({ params }: { params: { id: string }; }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
   const { id } = params;
 
-  const user = users.find((user) => user.id === id);
-  const [chatMessages, setChatMessages] = useState(messages[id] || []);
+  const group = groups.find((group) => group.id === id);
+  const [chatMessages, setChatMessages] = useState(groupMessages[id] || []);
   const [newMessage, setNewMessage] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
@@ -24,20 +24,19 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
-      initializeSocket(token); // Initialize the socket with the token
+      initializeSocket(token);
     } else {
       console.error("Token is null");
     }
 
-    const socket = getSocket(); // Get the socket instance
+    const socket = getSocket();
 
-    // Listen for incoming messages
     socket.on("newMessage", (message: any) => {
       setChatMessages((prevMessages) => [...prevMessages, message]);
     });
 
     return () => {
-      socket.off("newMessage"); // Remove the event listener
+      socket.off("newMessage");
     };
   }, []);
 
@@ -47,12 +46,12 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
     }
   }, [chatMessages]);
 
-  if (!user) {
-    return <div className="p-8 text-center text-gray-500">User not found.</div>;
+  if (!group) {
+    return <div className="p-8 text-center text-gray-500">Group not found.</div>;
   }
 
   const getUser = (sender: string) => {
-    return sender === "current" ? { name: "You", avatar: "Y" } : user;
+    return sender === "current" ? { name: "You", avatar: "Y" } : group;
   };
 
   const handleSendMessage = () => {
@@ -66,10 +65,9 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
       sender: "current",
     };
 
-    const socket = getSocket(); // Get the socket instance
-    socket.emit("sendMessage", newChatMessage); // Emit the message to the server
+    const socket = getSocket();
+    socket.emit("sendMessage", newChatMessage);
 
-    // Optimistically update the UI
     setChatMessages([...chatMessages, newChatMessage]);
     setNewMessage("");
     setImagePreviews([]);
@@ -119,7 +117,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
               console.log("current drawer state: ", isDrawerOpen);
             }}
           />
-          <h2 className="text-lg font-bold text-textGray">{user.name}</h2>
+          <h2 className="text-lg font-bold text-textGray">{group.name}</h2>
           <div className="flex space-x-4 items-center">
             <Input
               placeholder="Search..."
@@ -233,4 +231,4 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   );
 };
 
-export default UserPage;
+export default GroupPage;

@@ -26,6 +26,7 @@ const AuthForm = () => {
             localStorage.setItem('role', response.user.role);
             localStorage.setItem('nickName', response.user.nickName);
             localStorage.setItem('userId', response.user.userId);
+            localStorage.setItem('accessToken', response.accessToken);
 
             const avatarUrl = response.user.avatarUrl;
             if (avatarUrl) {
@@ -34,7 +35,7 @@ const AuthForm = () => {
                 localStorage.setItem('avatarUrl', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwdIVSqaMsmZyDbr9mDPk06Nss404fosHjLg&s');
             }
             // Redirect to user page
-            router.push('/users');
+            router.push('/users/chat');
             message.success('Login Successful');
         } catch (error) {
             console.error('Login Failed:', error);
