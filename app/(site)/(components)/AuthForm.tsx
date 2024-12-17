@@ -3,7 +3,7 @@
 import { Form, Input, Button, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { authLogin } from '../../api/apiService'; // Import the authLogin function
+import { authApiService } from '../../api/apiService'; // Import the authLogin function
 import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 
 declare global {
@@ -18,7 +18,7 @@ const AuthForm = () => {
     const onFinish = async (values: any) => {
         console.log('Form Submitted:', values);
         try {
-            const response = await authLogin(values.email, values.password);
+            const response = await authApiService.authLogin(values.email, values.password);
             console.log('Login Successful:', response);
             // Store user data in localStorage
             localStorage.setItem('username', response.user.username);

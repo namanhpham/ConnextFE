@@ -1,37 +1,6 @@
-import { axiosInstance } from "./axiosInstance";
+import * as authApiService from "./auth/authApiService";
 import * as userApiService from "./users/userApiService";
+import * as friendsApiService from "./friends/friendsApiService";
+import * as conversationApiService from "./conversations/conversationApiService";
 
-const authLogin = async (email: string, password: string) => {
-  const response = await axiosInstance.post("/auth/sign-in", {
-    email,
-    password,
-  });
-
-  return response.data;
-};
-
-const authRegister = async (
-  email: string,
-  password: string,
-  username: string
-) => {
-  const response = await axiosInstance.post("/auth/sign-up", {
-    email,
-    password,
-    username,
-  });
-
-  return response.data;
-};
-
-const authLogout = async () => {
-  const response = await axiosInstance.post("/auth/logout");
-  return response.data;
-};
-
-const updateProfile = async (data: any, userId: string) => {
-  const response = await axiosInstance.patch(`/users/${userId}`, data);
-  return response.data;
-};
-
-export { authLogin, authRegister, authLogout, updateProfile, userApiService };
+export { authApiService, userApiService, friendsApiService, conversationApiService };

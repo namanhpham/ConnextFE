@@ -3,7 +3,7 @@
 import { Form, Input, Button, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { authRegister } from '../../api/apiService'; // Import the authRegister function
+import { authApiService } from '../../api/apiService'; // Import the authRegister function
 import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 
 const RegisterForm = () => {
@@ -12,7 +12,7 @@ const RegisterForm = () => {
     const onFinish = async (values: any) => {
         console.log('Registration Successful:', values);
         try {
-            const response = await authRegister(values.email, values.password, values.username);
+            const response = await authApiService.authRegister(values.email, values.password, values.username);
             console.log('Registration Successful:', response);
             // Store user data in localStorage
             localStorage.setItem('username', response.user.username);

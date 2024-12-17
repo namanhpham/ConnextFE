@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation"; // Import usePathname from next/navigation
 import { users, messages } from "./mockData";
 import { useDrawer } from "../context/DrawerContext";
-import { authLogout } from "../api/apiService";
+import { authApiService } from "../api/apiService";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import { MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons"; // Import icons
 
@@ -25,7 +25,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = async () => {
     try {
-      await authLogout();
+      await authApiService.authLogout();
       localStorage.clear();
       // Redirect to sign-in page
       router.push("/sign-in");
@@ -96,7 +96,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
           items={users.map((user) => ({
             key: user.id,
             label: (
-              <Link href={`/users/${user.id}`} onClick={() => setIsDrawerOpen(false)}>
+              <Link href={`/users/chat/${user.id}`} onClick={() => setIsDrawerOpen(false)}>
                 <div className="flex items-center space-x-2">
                   <Avatar>{user.name.charAt(0)}</Avatar>
                   <div className="flex-1">
