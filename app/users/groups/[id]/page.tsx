@@ -1,25 +1,82 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Layout, Input, Button, Row, Col, Avatar, Upload } from "antd";
-import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
+import { Input, Button, Row, Col, Avatar, Upload, message, Drawer, Modal, Spin, Select, List, Popconfirm } from "antd";
+import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined, EditOutlined, PlusOutlined, DeleteOutlined, LogoutOutlined } from "@ant-design/icons";
 import Image from "next/image";
-import { groupMessages, groups } from "../../mockData";
 import { useDrawer } from "@/app/context/DrawerContext";
 import { initializeSocket, getSocket } from "@/app/utils/socket";
-
-const { Content } = Layout;
+import { friendsApiService, groupChatApiService } from "@/app/api/apiService";
+import { uploadToS3 } from "@/app/api/utils/uploadImg";
 
 const GroupPage = ({ params }: { params: { id: string }; }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
   const { id } = params;
 
-  const group = groups.find((group) => group.id === id);
-  const [chatMessages, setChatMessages] = useState(groupMessages[id] || []);
+  const [renamedGroupName, setRenamedGroupName] = useState("");
+  const [group, setGroup] = useState<any>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
+  const [showGroupDetails, setShowGroupDetails] = useState(false);
+  const [showRenameGroup, setShowRenameGroup] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeightRef = useRef<number>(0);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [sending, setSending] = useState<boolean>(false);
+
+  // This to add friends to the group
+  const [friends, setFriends] = useState<any[]>([]);
+  const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
+  const [groupMembers, setGroupMembers] = useState<any[]>([]);
+
+  const fetchFriends = async () => {
+    try {
+      const currentUserId = localStorage.getItem("userId");
+      const result = await friendsApiService.getAllFriends();
+      const friendList = result.map((friend: any) => {
+        if (friend.user_id.userId === Number(currentUserId)) {
+          return friend.friend_user_id;
+        } else {
+          return friend.user_id;
+        }
+      });
+      setFriends(friendList);
+    } catch (error) {
+      console.error("Failed to fetch friends:", error);
+    }
+  };
+
+  const fetchGroupMembers = async () => {
+    try {
+      const data = await groupChatApiService.getGroupMembers(Number(id));
+      setGroupMembers(data);
+      console.log("Group members: ", data);
+    } catch (error) {
+      console.error("Failed to fetch group members:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFriends();
+  }, []);
+
+  useEffect(() => {
+    fetchGroupMembers();
+  }, [id]);
+
+  useEffect(() => {
+    // Only runs on the client side
+    const userId = localStorage.getItem("userId");
+    setCurrentUserId(userId ? Number(userId) : null);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -40,6 +97,58 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
     };
   }, []);
 
+  const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop } = e.currentTarget;
+    if (scrollTop === 0 && hasMore && !loading) {
+      previousScrollHeightRef.current = messagesContainerRef.current?.scrollHeight || 0;
+      await fetchGroupMessages(page);
+      messagesContainerRef.current!.scrollTop = messagesContainerRef.current!.scrollHeight - previousScrollHeightRef.current;
+    }
+  };
+
+  const fetchGroupMessages = async (pageNumber: number) => {
+    setLoading(true);
+    try {
+      const reqBody = {
+        groupChatId: Number(id),
+        limit: 30,
+        offset: pageNumber, // offset is current page number
+      };
+      const data = await groupChatApiService.getGroupMessages(reqBody);
+      setChatMessages((prev) => [...data.messages, ...prev]);
+      setHasMore(data.hasMore);
+      setPage(pageNumber + 1);
+      console.log("Fetched group messages:", data);
+      console.log("hasMore:", hasMore);
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchGroupDetails = async () => {
+      try {
+        const data = await groupChatApiService.getGroupChatDetails(id);
+        setGroup(data);
+        console.log("group data: ", data);
+        console.log("currentUserId: ", currentUserId);
+        console.log(currentUserId === data.created_by.userId);
+        setRenamedGroupName(data.group_name);
+      } catch (error) {
+        console.error("Failed to fetch group details:", error);
+        message.error("Failed to fetch group details.");
+      }
+    };
+
+    fetchGroupDetails();
+  }, [id]);
+
+  useEffect(() => {
+    fetchGroupMessages(1);
+  }, [id]);
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -47,31 +156,73 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
   }, [chatMessages]);
 
   if (!group) {
-    return <div className="p-8 text-center text-gray-500">Group not found.</div>;
+    return <div className="p-8 text-center text-gray-500">Loading group details...</div>;
   }
 
   const getUser = (sender: string) => {
     return sender === "current" ? { name: "You", avatar: "Y" } : group;
   };
 
-  const handleSendMessage = () => {
+  const handleAddMembers = async () => {
+    if (selectedFriends.length === 0) {
+      message.warning("Please select at least one friend to add.");
+      return;
+    }
+    try {
+      await groupChatApiService.addGroupMember({
+        groupChat: Number(id),
+        members: selectedFriends,
+      });
+      message.success("Members added successfully!");
+      setShowAddMembersModal(false);
+      setSelectedFriends([]);
+      // Refetch friends and group members
+      await fetchFriends();
+      await fetchGroupMembers();
+    } catch (error) {
+      console.error("Failed to add members:", error);
+      message.error("Failed to add members.");
+    }
+  };
+
+  const handleSendMessage = async () => {
     if (newMessage.trim() === "" && imagePreviews.length === 0 && videoPreviews.length === 0) return;
 
-    const newChatMessage = {
-      id: chatMessages.length + 1,
-      text: newMessage,
-      imageUrls: imagePreviews,
-      videoUrls: videoPreviews,
-      sender: "current",
-    };
+    setSending(true);
 
-    const socket = getSocket();
-    socket.emit("sendMessage", newChatMessage);
+    let mediaUrl = "";
+    let mediaType = "text";
 
-    setChatMessages([...chatMessages, newChatMessage]);
-    setNewMessage("");
-    setImagePreviews([]);
-    setVideoPreviews([]);
+    if (mediaFile) {
+      try {
+        const s3Response = await uploadToS3(mediaFile);
+        mediaUrl = s3Response.fileUrl;
+        mediaType = s3Response.fileType.startsWith("image") ? "image" : "video";
+      } catch (error) {
+        console.error("Failed to upload media:", error);
+        message.error("Failed to upload media");
+        setSending(false);
+        return;
+      }
+    }
+
+    try {
+      await groupChatApiService.sendGroupMessage({
+        groupId: Number(id),
+        content: newMessage,
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
+      });
+      setNewMessage("");
+      setImagePreviews([]);
+      setVideoPreviews([]);
+      setMediaFile(null);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      message.error("Failed to send message");
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleUpload = (file: any) => {
@@ -79,6 +230,8 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
       alert("File size should be less than 25MB");
       return false;
     }
+
+    setMediaFile(file);
 
     if (file.type.startsWith("image/")) {
       setImagePreviews([...imagePreviews, URL.createObjectURL(file)]);
@@ -103,8 +256,78 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
     setVideoPreviews(videoPreviews.filter((_, i) => i !== index));
   };
 
+  const handleRenameGroup = () => {
+    setShowRenameGroup(true);
+  };
+
+  const handleRenameGroupOk = async () => {
+    console.log("Rename group data: ", renamedGroupName);
+    if(renamedGroupName.trim() === "") {
+      message.warning("Group name cannot be empty.");
+      return;
+    } else if (renamedGroupName === group.group_name) {
+      message.warning("Group name is the same as the current name.");
+      return;
+    }
+    try {
+      const response = await groupChatApiService.renameGroupChat({ groupId: group.group_id, groupName: renamedGroupName });
+      console.log("Rename group response: ", response);
+      setGroup({ ...group, group_name: renamedGroupName });
+      message.success("Group renamed successfully!");
+    } catch (error) {
+      console.error("Failed to rename group:", error);
+      message.error("Failed to rename group.");
+    } finally {
+      setShowRenameGroup(false);
+    }
+
+  };
+
+  const handleRemoveMember = async (groupMemberId: number) => {
+    try {
+      await groupChatApiService.removeGroupMember({
+        groupChatId: Number(id),
+        groupMemberId: groupMemberId,
+      });
+      message.success("Member removed successfully!");
+      // Refetch group members
+      await fetchGroupMembers();
+    } catch (error) {
+      console.error("Failed to remove member:", error);
+      message.error("Failed to remove member.");
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    try {
+      await groupChatApiService.leaveGroupChat({
+        groupChatId: Number(id),
+      });
+      message.success("You have left the group.");
+      // Redirect or update UI as needed
+    } catch (error) {
+      console.error("Failed to leave group:", error);
+      message.error("Failed to leave group.");
+    }
+  };
+
+  const getUserInfo = (message: any) => {
+    const isCurrentUser = message.sender_id.userId === currentUserId;
+    return {
+      isCurrentUser,
+      name: isCurrentUser ? "You" : message.sender_id.username,
+      avatar: isCurrentUser ? "Y" : message.sender_id.avatarUrl,
+    };
+  };
+
+  const filteredFriends = friends.filter(
+    (friend) => !groupMembers.some((member) => member.user_id.userId === friend.userId)
+  );
+
   return (
-      <div className="h-full flex flex-col">
+    <div className="h-full flex">
+      {/* Main Chat Content */}
+      <div className="flex flex-col flex-1">
         {/* Chat Header */}
         <div className="bg-primary border-b p-4 shadow-md flex justify-between items-center">
           <Button
@@ -117,46 +340,62 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
               console.log("current drawer state: ", isDrawerOpen);
             }}
           />
-          <h2 className="text-lg font-bold text-textGray">{group.name}</h2>
+          <div className="flex space-x-2">
+            <h2 className="text-lg font-bold text-textGray">{group.group_name || "Unnamed Group"}</h2>
+            {group.created_by.userId === currentUserId && <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => handleRenameGroup()}
+            />}
+          </div>
           <div className="flex space-x-4 items-center">
-            <Input
-              placeholder="Search..."
-              size="small"
-            />
+            {group.created_by.userId === currentUserId && (
+              <Button
+                type="text"
+                icon={<PlusOutlined />}
+                className="text-textGray hover:text-highlight"
+                onClick={() => setShowAddMembersModal(true)}
+              />
+            )}
             <Button
               type="text"
               icon={<SettingOutlined />}
               className="text-textGray hover:text-highlight"
+              onClick={() => setShowGroupDetails(true)}
             />
           </div>
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 bg-primary space-y-4">
+        <div
+          className="flex-1 overflow-y-auto p-4 bg-primary space-y-4"
+          onScroll={handleScroll}
+          ref={messagesContainerRef}
+        >
           {chatMessages.map((message) => {
-            const messageUser = getUser(message.sender);
+            const { isCurrentUser, name, avatar } = getUserInfo(message);
             return (
               <Row
-                key={message.id}
-                justify={message.sender === "current" ? "end" : "start"}
+                key={message.message_id}
+                justify={isCurrentUser ? "end" : "start"}
               >
                 <Col>
-                  <div className={`flex items-start space-x-1 ${message.sender === "current" ? "flex-row-reverse" : ""}`}>
-                    {message.sender !== "current" && <Avatar>{messageUser.avatar}</Avatar>}
+                  <div className={`flex items-start space-x-1 ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                    {!isCurrentUser && <Avatar src={avatar}>{!avatar && name.charAt(0)}</Avatar>}
                     <div>
-                      {message.sender !== "current" && <div className="text-xs text-gray-500 pb-1">{messageUser.name}</div>}
+                      {!isCurrentUser && <div className="text-xs text-gray-500 pb-1">{name}</div>}
                       <div
                         className={`font-semibold ${
-                          message.sender === "current"
+                          isCurrentUser
                             ? "bg-secondary text-light"
                             : "bg-accent text-textGray"
                         } p-3 rounded-lg max-w-xs`}
                       >
-                        {message.text && <p>{message.text}</p>}
-                        {message.imageUrls && message.imageUrls.map((url, index) => (
+                        {message.content && <p>{message.content}</p>}
+                        {message.imageUrls && message.imageUrls.map((url: string, index: number) => (
                           <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
                         ))}
-                        {message.videoUrls && message.videoUrls.map((url, index) => (
+                        {message.videoUrls && message.videoUrls.map((url: string, index: number) => (
                           <video key={index} controls width="150" className="rounded-lg">
                             <source src={url} type="video/mp4" />
                             Your browser does not support the video tag.
@@ -170,6 +409,11 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
             );
           })}
           <div ref={messagesEndRef} />
+          {loading && (
+            <div className="flex justify-center p-2">
+              <Spin />
+            </div>
+          )}
         </div>
 
         {/* Message Input */}
@@ -189,8 +433,14 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
             >
               <Button type="text" icon={<PictureOutlined />} size="large" />
             </Upload>
-            <Button type="primary" size="large" onClick={handleSendMessage}>
-              Send 
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleSendMessage}
+              disabled={sending}
+              loading={sending}
+            >
+              Send
             </Button>
           </div>
           {imagePreviews.length > 0 && (
@@ -228,6 +478,135 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
           )}
         </div>
       </div>
+
+      {/* Group Rename Modal */}
+      <Modal 
+        title="Rename Group"
+        visible={showRenameGroup}
+        onOk={handleRenameGroupOk}
+        onCancel={() => setShowRenameGroup(false)}
+      >
+        <Input 
+          placeholder="Enter new group name" 
+          value={renamedGroupName}
+          onChange={(e) => setRenamedGroupName(e.target.value)}
+        />
+      </Modal>
+
+      {/* Group Details Drawer */}
+      <Drawer
+        title={<span className="font-bold text-lg text-primary">Group Details</span>}
+        placement="right"
+        onClose={() => setShowGroupDetails(false)}
+        open={showGroupDetails}
+        className="p-0"
+      >
+        {/* Drawer Content */}
+        <div className="flex flex-col h-full">
+          {/* Group Name */}
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-800">{group.group_name}</h2>
+          </div>
+
+          {/* Members Section */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <h3 className="mb-2 font-semibold text-base border-b border-gray-200 pb-2">
+              Members
+            </h3>
+            <List
+              itemLayout="horizontal"
+              dataSource={groupMembers}
+              renderItem={(member) => (
+                <List.Item
+                  actions={
+                    group.created_by.userId === currentUserId
+                      ? [
+                          <Popconfirm
+                            title="Are you sure you want to remove this member?"
+                            onConfirm={() =>
+                              handleRemoveMember(member.group_member_id)
+                            }
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <Button
+                              type="text"
+                              icon={<DeleteOutlined />}
+                              className="text-danger hover:text-danger-dark"
+                            />
+                          </Popconfirm>,
+                        ]
+                      : []
+                  }
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar src={member.user_id.avatarUrl}>
+                        {!member.user_id.avatarUrl &&
+                          member.user_id.username.charAt(0)}
+                      </Avatar>
+                    }
+                    title={
+                      <span className="font-medium text-gray-800">
+                        {member.user_id.username}
+                      </span>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </div>
+
+          {/* Leave Group Button */}
+          <div className="p-4 border-t border-gray-200 sticky bottom-0 bg-white">
+            <Button
+              type="primary"
+              icon={<LogoutOutlined />}
+              onClick={handleLeaveGroup}
+              className="!bg-red-500 hover:!bg-red-600 !text-white w-full"
+            >
+              Leave Group
+            </Button>
+          </div>
+        </div>
+      </Drawer>
+
+
+      {/* Add Members Modal */}
+      <Modal
+        title="Add Members"
+        visible={showAddMembersModal}
+        onOk={handleAddMembers}
+        onCancel={() => setShowAddMembersModal(false)}
+      >
+        <List
+          itemLayout="horizontal"
+          dataSource={filteredFriends}
+          renderItem={(friend) => (
+            <List.Item
+              actions={[
+                <Button
+                  type="text"
+                  icon={selectedFriends.includes(friend.userId) ? <CloseOutlined /> : <PlusOutlined />}
+                  onClick={() => {
+                    if (selectedFriends.includes(friend.userId)) {
+                      setSelectedFriends(selectedFriends.filter((id) => id !== friend.userId));
+                    } else {
+                      setSelectedFriends([...selectedFriends, friend.userId]);
+                    }
+                  }}
+                />,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={<Avatar src={friend.avatarUrl}>{!friend.avatarUrl && friend.username.charAt(0)}</Avatar>}
+                title={friend.username}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
+    </div>
   );
 };
 

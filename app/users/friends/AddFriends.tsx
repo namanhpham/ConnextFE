@@ -6,14 +6,15 @@ import { friendsApiService, userApiService } from "@/app/api/apiService";
 
 interface AddFriendsProps {
   currentUserId: string;
+  refreshFriendsList: () => void;
 }
 
-const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId }) => {
+const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId, refreshFriendsList }) => {
   const [newFriendSearchTerm, setNewFriendSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
-  const pageSize = 3;
+  const pageSize = 10;
 
   useEffect(() => {
     fetchAllUsers();
@@ -22,7 +23,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId }) => {
 
   const fetchAllUsers = async () => {
     const result = await userApiService.getAllUsers(currentPage, pageSize);
-    result.data = result.data.filter((user: any) => user.userId !== currentUserId);
+    result.data = result.data.filter((user: any) => user.isFriend === false);
     console.log("currentUserId", currentUserId);
     setAllUsers(result.data);
     setTotalUsers(result.pagination.totalResult);
@@ -30,7 +31,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId }) => {
 
   const handleNewFriendSearch = async () => {
     const result = await userApiService.searchUser(newFriendSearchTerm, currentPage, pageSize);
-    result.data = result.data.filter((user: any) => user.userId !== currentUserId);
+    result.data = result.data.filter((user: any) => user.isFriend === false);
     setAllUsers(result.data);
     setTotalUsers(result.pagination.totalResult);
   };
@@ -43,6 +44,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId }) => {
     try {
       await friendsApiService.createFriendRequest(userId);
       message.success(`Friend request sent to user ${userId}`);
+      refreshFriendsList();
     } catch (error) {
       message.error("Failed to send friend request");
     }

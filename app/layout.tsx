@@ -1,9 +1,11 @@
+import React from 'react';
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ConfigProvider } from 'antd';
 import AuthProvider from './context/AuthContext';
 import { DrawerProvider } from './context/DrawerContext';
+import SocketProvider from './context/SocketContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,11 +40,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <DrawerProvider>
-            <ConfigProvider theme={theme}>
-              {children}
-            </ConfigProvider>
-          </DrawerProvider>
+          <SocketProvider>
+            <DrawerProvider>
+              <ConfigProvider theme={theme}>
+                {children}
+              </ConfigProvider>
+            </DrawerProvider>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

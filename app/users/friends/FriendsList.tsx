@@ -15,7 +15,7 @@ const FriendsList: React.FC<FriendsListProps> = ({ currentUserId, friendsListRef
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [friends, setFriends] = useState<any[]>([]);
-  const pageSize = 3;
+  const pageSize = 10;
   const router = useRouter();
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+export type { Socket }; // Export the Socket type
 
 let socket: Socket | null = null;
 
@@ -43,6 +44,3 @@ export const disconnectSocket = (): void => {
     socket = null;
   }
 };
-
-// Export the socket instance
-export { socket };

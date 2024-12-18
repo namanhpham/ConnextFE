@@ -9,6 +9,7 @@ import { useDrawer } from "../context/DrawerContext";
 import { authApiService } from "../api/apiService";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import { MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons"; // Import icons
+import { disconnectSocket } from "../utils/socket";
 
 const { Sider, Content } = Layout;
 
@@ -29,6 +30,7 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
       localStorage.clear();
       // Redirect to sign-in page
       router.push("/sign-in");
+      disconnectSocket();
     } catch (error) {
       console.error("Logout Failed:", error);
     }
