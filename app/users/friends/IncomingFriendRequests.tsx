@@ -9,6 +9,7 @@ interface IncomingFriendRequestsProps {
   refreshFriendsList: () => void;
   receivedFriendRequests: any[];
   fetchReceivedFriendRequests: () => void;
+  setReceivedFriendRequests: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
@@ -16,6 +17,7 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
   refreshFriendsList,
   receivedFriendRequests,
   fetchReceivedFriendRequests,
+  setReceivedFriendRequests,
 }) => {
 
   const handleAcceptFriendRequest = async (friendRequestId: number) => {
@@ -24,6 +26,9 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
       message.success(`Accepted friend request ${friendRequestId}`);
       fetchReceivedFriendRequests();
       refreshFriendsList();
+      setReceivedFriendRequests((prevRequests) =>
+        prevRequests.filter((request) => request.friendship_id !== friendRequestId)
+      );
     } catch (error) {
       message.error("Failed to accept friend request");
     }
@@ -34,6 +39,9 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
       await friendsApiService.rejectFriendRequest(friendRequestId);
       message.success(`Rejected friend request ${friendRequestId}`);
       fetchReceivedFriendRequests();
+      setReceivedFriendRequests((prevRequests) =>
+        prevRequests.filter((request) => request.friendship_id !== friendRequestId)
+      );
     } catch (error) {
       message.error("Failed to reject friend request");
     }
@@ -51,7 +59,7 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
               key="accept"
               type="link"
               icon={<UserAddOutlined />}
-              onClick={() => handleAcceptFriendRequest(request.friendship_id)}
+              onClick={() => handleAcceptFriendRequest(request.userId)}
             >
               Accept
             </Button>,
@@ -59,7 +67,7 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
               key="decline"
               type="link"
               icon={<DeleteOutlined />}
-              onClick={() => handleRejectFriendRequest(request.friendship_id)}
+              onClick={() => handleRejectFriendRequest(request.userId)}
             >
               Decline
             </Button>,

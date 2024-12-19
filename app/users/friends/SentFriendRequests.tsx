@@ -24,7 +24,7 @@ const SentFriendRequests: React.FC<SentFriendRequestsProps> = ({ currentUserId, 
             //   key="cancel"
             //   type="link"
             //   icon={<DeleteOutlined />}
-            //   onClick={() => handleCancelFriendRequest(request.friendship_id)}
+            //   onClick={() => handleCancelFriendRequest(request.userId)}
             // >
             //   Cancel
             // </Button>,

@@ -113,9 +113,9 @@ const UserProfile = () => {
           <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
         </Dropdown>
         <div className="flex flex-col items-center space-y-4 mt-auto">
-          <Button type="text" icon={<MessageOutlined />} onClick={() => router.push("/users/chat")} />
-          <Button type="text" icon={<UserOutlined />} onClick={() => router.push("/users/friends")} />
-          <Button type="text" icon={<TeamOutlined />} onClick={() => router.push("/users/groups")} />
+          <Button type="text" className="!hover:bg-primary" icon={<MessageOutlined />} onClick={() => router.push("/users/chat")} />
+          <Button type="text" className="!hover:bg-primary" icon={<UserOutlined />} onClick={() => router.push("/users/friends")} />
+          <Button type="text" className="!hover:bg-primary" icon={<TeamOutlined />} onClick={() => router.push("/users/groups")} />
         </div>
       </Sider>
 

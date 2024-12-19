@@ -28,6 +28,25 @@ const FriendsPage: React.FC = () => {
     setCurrentUserId(userId);
   }, []);
 
+  useEffect(() => {
+    if (currentUserId) {
+      if (activeTab === "friends") {
+        fetchFriendsList();
+      } else if (activeTab === "requests") {
+        fetchReceivedFriendRequests();
+      } else if (activeTab === "sentRequests") {
+        fetchSentFriendRequests();
+      } else if (activeTab === "addFriends") {
+        // Fetch data for the "Add Friends" tab if necessary
+      }
+    }
+  }, [activeTab, currentUserId, friendsListRefreshKey]);
+
+  const fetchFriendsList = async () => {
+    // Fetch the friends list
+    // set state accordingly
+  };
+
   // Sent friend requests
   const [sentFriendRequests, setSentFriendRequests] = useState<any[]>([]);
 
@@ -90,6 +109,7 @@ const FriendsPage: React.FC = () => {
                 refreshFriendsList={refreshFriendsList}
                 receivedFriendRequests={receivedFriendRequests}
                 fetchReceivedFriendRequests={fetchReceivedFriendRequests}
+                setReceivedFriendRequests={setReceivedFriendRequests}
               />
             )}
           </TabPane>
