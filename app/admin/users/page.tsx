@@ -1,6 +1,6 @@
 'use client'
 import { getUserPaginated } from '@/app/api/admin/adminApiService';
-import { Table, Card, Select } from 'antd';
+import { Table, Card, Select, TablePaginationConfig } from 'antd';
 import { useState, useEffect } from 'react';
 
 const UserManagementPage = () => {
@@ -33,7 +33,7 @@ const UserManagementPage = () => {
       title: 'Nickname',
       dataIndex: 'nickname',
       key: 'nickname',
-      render: (nickname) => nickname ? nickname : 'None',
+      render: (nickname: string | null) => nickname ? nickname : 'None',
     },
     {
       title: 'Email',
@@ -44,7 +44,7 @@ const UserManagementPage = () => {
       title: 'DoB',
       dataIndex: 'date_of_birth',
       key: 'date_of_birth',
-      render: (date_of_birth) => date_of_birth ? date_of_birth : 'None',
+      render: (date_of_birth: string | null) => date_of_birth ? date_of_birth : 'None',
     },
     {
       title: 'Role',
@@ -55,7 +55,7 @@ const UserManagementPage = () => {
       title: 'Status',
       dataIndex: 'isOnline',
       key: 'isOnline',
-      render: (isOnline) => isOnline ? 'Online' : 'Offline',
+      render: (isOnline: boolean) => isOnline ? 'Online' : 'Offline',
     },
   ];
 
@@ -78,7 +78,7 @@ const UserManagementPage = () => {
     setPagination(prev => ({ ...prev, current: 1 }));
   };
 
-  const handleTableChange = (newPagination) => {
+  const handleTableChange = (newPagination: TablePaginationConfig) => {
     fetchUsers(newPagination.current);
   };
   return (

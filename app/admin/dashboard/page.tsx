@@ -43,7 +43,13 @@ interface DashboardStats {
   usersPerMonth: number[];
 }
 
-const transformedUserPerMonthData = (data) => {
+interface MonthlyData {
+  month: string;
+  count: string;
+  year: string;
+}
+
+const transformedUserPerMonthData = (data: MonthlyData[]) => {
   const usersPerMonth = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   for (let i = 0; i < data.length; i++) {
     const month = Number.parseInt(data[i].month) - 1

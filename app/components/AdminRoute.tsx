@@ -3,7 +3,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 
-const AdminRoute = ({ children }) => {
+import { ReactNode } from 'react';
+
+const AdminRoute = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const { user, isLoading } = useAuth();
 
