@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useContext, useLayoutEffect } from "react";
-import { Input, Button, Row, Col, Avatar, Upload, Spin, message as modalMessage } from "antd";
+import { Input, Button, Row, Col, Avatar, Upload, Spin, message as modalMessage, Modal } from "antd";
 import { MenuOutlined, SettingOutlined, PictureOutlined, CloseOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useDrawer } from "@/app/context/DrawerContext";
@@ -28,6 +28,8 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false); // Track sending state
+  const [isVideoCallModalVisible, setIsVideoCallModalVisible] = useState(false);
+  const [incomingCallUrl, setIncomingCallUrl] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesStartRef = useRef<HTMLDivElement>(null);
   const { socket } = React.useContext(SocketContext); // Get socket and onMessage from SocketContext
@@ -75,6 +77,17 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
     // Listen for incoming messages
     socket.on("onMessage", (message: any) => {
       const incomingMessage = message.message;
+
+      const currentUserId = Number(localStorage.getItem("userId"));
+      // open video call modal if incoming message is a video call and not sent by the current user
+      if (incomingMessage.media_type === "file" && incomingMessage.sender_id.userId !== currentUserId) {
+        console.log("currentUserId: ", currentUserId);
+        console.log("senderId: ", incomingMessage.sender_id.userId);
+        setIncomingCallUrl(incomingMessage.content);
+        setIsVideoCallModalVisible(true);
+        return;
+      }
+
       console.log("Received message in chat page:", incomingMessage);
       // console.log("message content: ", incomingMessage.content);
       // console.log("message conversation_id: ", incomingMessage.conversation_id.conversation_id);
@@ -120,17 +133,26 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
       senderId: currentUserId,
       recipientId: Number(localStorage.getItem("recipientId")),
       conversationId: Number(id),
-      content: `Video call: ${window.location.origin}${callUrl}`,
+      content: `${window.location.origin}${callUrl}`,
       mediaUrl: "",
-      mediaType: "text",
+      mediaType: "file",
     };
 
     try {
       await sendMessage(newChatMessage);
-      // router.push(callUrl); // Redirect to the video call URL
+      router.push(callUrl); // Redirect sender to the video call URL first
     } catch (error) {
       console.error("Failed to send video call message:", error);
     }
+  };
+
+  const handleVideoCallConfirm = () => {
+    setIsVideoCallModalVisible(false);
+    router.push(incomingCallUrl);
+  };
+
+  const handleVideoCallCancel = () => {
+    setIsVideoCallModalVisible(false);
   };
 
   const generateRoomId = () => {
@@ -275,6 +297,11 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
         {[...chatMessages].map((message, index) => { // Create a copy before reversing
           const { isCurrentUser, name, avatar } = getUserInfo(message);
 
+          if (message.media_type === "file") {
+            console.log("Skip rendering file media type");
+            return null; // Skip rendering file media type
+          }
+
           return (
             <Row
               key={message.message_id}
@@ -375,6 +402,17 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
           </div>
         )}
       </div>
+
+      <Modal
+        title="Incoming Video Call"
+        visible={isVideoCallModalVisible}
+        onOk={handleVideoCallConfirm}
+        onCancel={handleVideoCallCancel}
+        okText="Accept"
+        cancelText="Decline"
+      >
+        <p>You have an incoming video call. Do you want to accept it?</p>
+      </Modal>
     </div>
   );
 

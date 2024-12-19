@@ -1,23 +1,26 @@
 "use client";
 
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
     roomId: string;
 }
 
 const VideoCall = ({ roomId }: Props) => {
-
     const zegoRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    const searchParams = useSearchParams();
-    const username = searchParams.get("username") || "Anonymous";
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        if (typeof window === "undefined") return; // Ensure this code runs only on the client side
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isClient) return; // Ensure this code runs only on the client side
+
+        const user = localStorage.getItem("user");
+        const username = user ? JSON.parse(user).username : "Anonymous";
 
         const appID = parseInt(process.env.NEXT_PUBLIC_ZEGOCLOUD_APP_ID || "0");
         const serverSecret = process.env.NEXT_PUBLIC_ZEGOCLOUD_SERVER_SECRET || "";
@@ -65,7 +68,11 @@ const VideoCall = ({ roomId }: Props) => {
                 zegoRef.current = null;
             }
         };
-    }, [roomId, username]);
+    }, [isClient, roomId]);
+
+    if (!isClient) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div ref={containerRef} className="h-screen w-full" />
