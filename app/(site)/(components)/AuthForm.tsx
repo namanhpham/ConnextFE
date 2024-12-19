@@ -45,7 +45,11 @@ const AuthForm = () => {
       setUser(user);
 
       // Redirect to user page
-      router.push('/users/chat');
+      if (user.role == 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/users/chat');
+      }
       message.success('Login Successful');
     } catch (error) {
       console.error('Login Failed:', error);

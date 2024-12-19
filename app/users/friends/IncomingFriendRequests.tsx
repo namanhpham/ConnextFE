@@ -20,6 +20,10 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
   setReceivedFriendRequests,
 }) => {
 
+  useEffect(() => {
+    console.log("receivedFriendRequests", receivedFriendRequests);
+  }, [currentUserId]);
+
   const handleAcceptFriendRequest = async (friendRequestId: number) => {
     try {
       await friendsApiService.acceptFriendRequest(friendRequestId);
@@ -59,7 +63,7 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
               key="accept"
               type="link"
               icon={<UserAddOutlined />}
-              onClick={() => handleAcceptFriendRequest(request.userId)}
+              onClick={() => handleAcceptFriendRequest(request.friendship_id)}
             >
               Accept
             </Button>,
@@ -67,7 +71,7 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
               key="decline"
               type="link"
               icon={<DeleteOutlined />}
-              onClick={() => handleRejectFriendRequest(request.userId)}
+              onClick={() => handleRejectFriendRequest(request.friendship_id)}
             >
               Decline
             </Button>,
