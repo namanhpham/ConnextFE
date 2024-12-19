@@ -8,8 +8,9 @@ import { useDrawer } from "@/app/context/DrawerContext";
 import { SocketContext } from "@/app/context/SocketContext";
 import { conversationApiService } from "@/app/api/apiService"; // Import API service
 import { sendMessage } from "@/app/api/conversations/conversationApiService"; // Import sendMessage API
-import { RecipientContext } from "../layout"; // Import RecipientContext
 import { uploadToS3 } from "@/app/api/utils/uploadImg"; // Import uploadToS3
+import { useRouter } from "next/navigation";
+import { Video } from "lucide-react";
 
 const { TextArea } = Input;
 
@@ -33,6 +34,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
   const [recipientName, setRecipientName] = useState<string | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const previousScrollHeightRef = useRef<number>(0);
+  const router = useRouter();
 
   const fetchMessages = async (pageNumber: number) => {
     setLoading(true);
@@ -111,6 +113,42 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
       messagesContainerRef.current.scrollTop = newScrollHeight - previousScrollHeightRef.current;
     }
   }, [chatMessages]);
+
+  const handleVideoCall = async () => {
+    const callUrl = `/users/chat/${id}/room/${generateRoomId()}`;
+    const newChatMessage = {
+      senderId: currentUserId,
+      recipientId: Number(localStorage.getItem("recipientId")),
+      conversationId: Number(id),
+      content: `Video call: ${window.location.origin}${callUrl}`,
+      mediaUrl: "",
+      mediaType: "text",
+    };
+
+    try {
+      await sendMessage(newChatMessage);
+      // router.push(callUrl); // Redirect to the video call URL
+    } catch (error) {
+      console.error("Failed to send video call message:", error);
+    }
+  };
+
+  const generateRoomId = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
+  const renderMessageContent = (content: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return content.split(urlRegex).map((part, index) =>
+      urlRegex.test(part) ? (
+        <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+          {part}
+        </a>
+      ) : (
+        part
+      )
+    );
+  };
 
   const getUserInfo = (message: any) => {
     const isCurrentUser = message.sender_id.userId === currentUserId;
@@ -220,6 +258,11 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
           }}
         />
         <h2 className="text-lg font-bold text-textGray">{recipientName}</h2>
+        <Button
+          type="text"
+          icon={<Video style={{ color: "#19b3a8" }} />}
+          onClick={handleVideoCall}
+        />
       </div>
 
       {/* Chat Messages */}
@@ -249,7 +292,7 @@ const UserPage = ({ params }: { params: { id: string }; }) => {
                           : "bg-accent text-textGray"
                       } p-3 rounded-lg max-w-xs break-words`} // Ensure long messages break into new lines
                     >
-                      {message.content && <p>{message.content}</p>}
+                      {message.content && <p>{renderMessageContent(message.content)}</p>}
                       {message.media_url && message.media_type == "image" && (
                         <Image key={index} src={message.media_url as string} alt="Sent image" width={150} height={150} className="rounded-lg" />
                       )}
