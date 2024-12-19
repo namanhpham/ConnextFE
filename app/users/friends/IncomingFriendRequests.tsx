@@ -7,32 +7,16 @@ import { friendsApiService } from "@/app/api/apiService";
 interface IncomingFriendRequestsProps {
   currentUserId: string;
   refreshFriendsList: () => void;
+  receivedFriendRequests: any[];
+  fetchReceivedFriendRequests: () => void;
 }
 
 const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
   currentUserId,
   refreshFriendsList,
+  receivedFriendRequests,
+  fetchReceivedFriendRequests,
 }) => {
-  const [receivedFriendRequests, setReceivedFriendRequests] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (currentUserId) {
-      fetchReceivedFriendRequests();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId]);
-
-  const fetchReceivedFriendRequests = async () => {
-    const result = await friendsApiService.getReceivedFriendRequests();
-    const incomingFriendList = result.map((friend: any) => {
-      if (friend.user_id.userId === Number(currentUserId)) {
-        return friend.friend_user_id;
-      } else {
-        return friend.user_id;
-      }
-    });
-    setReceivedFriendRequests(incomingFriendList);
-  };
 
   const handleAcceptFriendRequest = async (friendRequestId: number) => {
     try {
@@ -83,8 +67,8 @@ const IncomingFriendRequests: React.FC<IncomingFriendRequestsProps> = ({
         >
           <List.Item.Meta
             avatar={<Avatar icon={<UserOutlined />} />}
-            title={request.user_id.username}
-            description={request.user_id.email}
+               title={request.username || "Unknown User"}
+            description={request.email || "No email available"}
           />
         </List.Item>
       )}

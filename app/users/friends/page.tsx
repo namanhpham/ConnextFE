@@ -7,6 +7,7 @@ import FriendsList from "./FriendsList";
 import IncomingFriendRequests from "./IncomingFriendRequests";
 import SentFriendRequests from "./SentFriendRequests";
 import AddFriends from "./AddFriends";
+import { friendsApiService } from "@/app/api/apiService";
 
 const { Content } = Layout;
 const { TabPane } = Tabs;
@@ -17,6 +18,7 @@ const FriendsPage: React.FC = () => {
   const [friendsListRefreshKey, setFriendsListRefreshKey] = useState(0);
   const router = useRouter();
 
+  // friend list refresh key to refresh the friends list
   const refreshFriendsList = () => {
     setFriendsListRefreshKey((prevKey) => prevKey + 1);
   };
@@ -25,6 +27,49 @@ const FriendsPage: React.FC = () => {
     const userId = localStorage.getItem("userId");
     setCurrentUserId(userId);
   }, []);
+
+  // Sent friend requests
+  const [sentFriendRequests, setSentFriendRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchSentFriendRequests();
+    }
+  }, [currentUserId, friendsListRefreshKey]);
+
+  const fetchSentFriendRequests = async () => {
+    const result = await friendsApiService.getSentFriendRequests();
+    const sentFriendRequestsList = result.map((friend: any) => {
+      if (friend.user_id.userId === Number(currentUserId)) {
+        return friend.friend_user_id;
+      } else {
+        return friend.user_id;
+      }
+    });
+    setSentFriendRequests(sentFriendRequestsList);
+  };
+
+  // Incoming friend requests
+  const [receivedFriendRequests, setReceivedFriendRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchReceivedFriendRequests();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId, friendsListRefreshKey]);
+
+  const fetchReceivedFriendRequests = async () => {
+    const result = await friendsApiService.getReceivedFriendRequests();
+    const incomingFriendList = result.map((friend: any) => {
+      if (friend.user_id.userId === Number(currentUserId)) {
+        return friend.friend_user_id;
+      } else {
+        return friend.user_id;
+      }
+    });
+    setReceivedFriendRequests(incomingFriendList);
+  };
 
   return (
     <div className="h-screen text-black">
@@ -43,16 +88,24 @@ const FriendsPage: React.FC = () => {
               <IncomingFriendRequests
                 currentUserId={currentUserId}
                 refreshFriendsList={refreshFriendsList}
+                receivedFriendRequests={receivedFriendRequests}
+                fetchReceivedFriendRequests={fetchReceivedFriendRequests}
               />
             )}
           </TabPane>
           <TabPane tab="Sent Friend Requests" key="sentRequests">
             {currentUserId && (
-              <SentFriendRequests currentUserId={currentUserId} />
+              <SentFriendRequests 
+                currentUserId={currentUserId}
+                sentFriendRequests={sentFriendRequests}
+              />
             )}
           </TabPane>
           <TabPane tab="Add Friends" key="addFriends">
-            {currentUserId && <AddFriends currentUserId={currentUserId} />}
+            {currentUserId && <AddFriends 
+              currentUserId={currentUserId} 
+              refreshFriendsList={refreshFriendsList}
+            />}
           </TabPane>
         </Tabs>
       </Content>

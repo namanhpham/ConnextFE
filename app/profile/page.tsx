@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import moment from "moment"; // Import moment for date handling
 import { authApiService } from "@/app/api/apiService";
 import { uploadToS3 } from "../api/utils/uploadImg";
+import { disconnectSocket } from "../utils/socket";
 
 const { Sider, Content } = Layout;
 
@@ -87,6 +88,7 @@ const UserProfile = () => {
       localStorage.clear();
       // Redirect to sign-in page
       router.push("/sign-in");
+      disconnectSocket();
     } catch (error) {
       console.error("Logout Failed:", error);
     }

@@ -28,9 +28,14 @@ const authLogout = async () => {
     return response.data;
 };
 
+const refreshToken = async () => {
+    const response = await axiosInstance.post("/auth/refresh-token");
+    return response.data;
+}
+
 const updateProfile = async (data: any, userId: string) => {
     const response = await axiosInstance.patch(`/users/${userId}`, data);
     return response.data;
 };
 
-export { authLogin, authRegister, authLogout, updateProfile };
+export { authLogin, authRegister, authLogout, refreshToken, updateProfile };
