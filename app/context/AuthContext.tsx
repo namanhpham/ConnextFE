@@ -59,6 +59,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       return () => clearInterval(intervalId);
     } else {
       setUser(null);
+      setIsLoading(false);
     }
   }, []);
 

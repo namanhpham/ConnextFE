@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="relative h-screen w-full bg-primary">
+    <div className="relative h-screen w-full bg-emerald-200">
       {/* Overlay Content */}
       <div className="relative flex flex-col items-center justify-center h-full bg-black/50 text-white">
         <h1 className="text-4xl md:text-6xl font-bold text-center mb-4">
@@ -12,7 +12,7 @@ export default function Home() {
           Connect, share, and communicate with your friends and family instantly.
         </p>
         <div className="flex space-x-4">
-          <button className="bg-highlight hover:bg-accent text-white px-6 py-3 rounded-md text-lg">
+          <button className="bg-secondary hover:bg-[#27dbcf] text-white px-6 py-3 rounded-md text-lg">
             <Link href={"/sign-in"}>
                 Get Started
             </Link>

@@ -77,7 +77,6 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
           },
         ]);
       });
-      // socket.on("onGroupChatLeave", handleGroupChatLeave);
     }
     
     return () => {

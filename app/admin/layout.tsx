@@ -3,10 +3,11 @@ import { Layout, Menu } from 'antd';
 import { DashboardOutlined, UserOutlined } from '@ant-design/icons';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import AuthenticatedRoute from '../components/AuthenticatedRoute';
 
 const { Sider, Content } = Layout;
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   
   const getSelectedKey = (path: string) => {
@@ -29,17 +30,19 @@ const AdminLayout = ({ children }) => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[getSelectedKey(pathname)]}
-          items={menuItems}
-        />
-      </Sider>
-      <Content style={{ padding: '24px' }}>{children}</Content>
-    </Layout>
+    <AuthenticatedRoute>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sider>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[getSelectedKey(pathname)]}
+            items={menuItems}
+          />
+        </Sider>
+        <Content style={{ padding: '24px' }}>{children}</Content>
+      </Layout>
+    </AuthenticatedRoute>
   );
 };
 
