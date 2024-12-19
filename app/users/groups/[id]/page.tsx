@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -8,10 +9,14 @@ import { useDrawer } from "@/app/context/DrawerContext";
 import { initializeSocket, getSocket } from "@/app/utils/socket";
 import { friendsApiService, groupChatApiService } from "@/app/api/apiService";
 import { uploadToS3 } from "@/app/api/utils/uploadImg";
+import { useRouter } from "next/navigation";
+import { SocketContext } from "@/app/context/SocketContext";
+import TextArea from "antd/es/input/TextArea";
 
 const GroupPage = ({ params }: { params: { id: string }; }) => {
   const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
   const { id } = params;
+  const { socket } = React.useContext(SocketContext); // Get socket and onMessage from SocketContext
 
   const [renamedGroupName, setRenamedGroupName] = useState("");
   const [group, setGroup] = useState<any>(null);
@@ -36,6 +41,56 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
   const [groupMembers, setGroupMembers] = useState<any[]>([]);
+  const [filteredFriends, setFilteredFriends] = useState<any[]>([]);
+
+  const router = useRouter();
+  useEffect(() => {
+    const handleGroupChatUpdateName = (data: any) => {
+      console.log("Group chat updated:", data);
+      setGroup((prevGroup: any) => ({
+        ...prevGroup,
+        group_name: data.group_name,
+      }));
+    };
+
+    if(socket) {
+      console.log("Socket is available");
+      socket.on("onGroupChatUpdateName", handleGroupChatUpdateName);
+      socket.on("onSendGroupMessage", (data: any) => {
+        console.log("Received group message:", data);
+        const senderId = data.groupMessage.sender_id.userId;
+        const content = data.groupMessage.content;
+        const avatarUrl = data.groupMessage.sender_id.avatarUrl;
+        const senderName = data.groupMessage.sender_id.username;
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender_id: { 
+              userId: senderId,
+              avatarUrl: avatarUrl,
+              userName: senderName,
+            },
+            content: content,
+            media_url: data.groupMessage.media_url,
+            media_type: data.groupMessage.media_type,
+            message_id: data.groupMessage.message_id,
+          },
+        ]);
+      });
+      // socket.on("onGroupChatLeave", handleGroupChatLeave);
+    }
+    
+    return () => {
+      socket?.off("onGroupChatUpdateName", handleGroupChatUpdateName);
+    };
+  }, [socket, id]); 
+
+  const isGroupLeader = () => {
+    // find the member with the current user id first
+    const member = groupMembers.find((member) => member.user_id.userId === currentUserId);
+    // check if the member is the group leader
+    return member?.role === "leader";
+  }
 
   const fetchFriends = async () => {
     try {
@@ -73,29 +128,15 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
   }, [id]);
 
   useEffect(() => {
-    // Only runs on the client side
     const userId = localStorage.getItem("userId");
     setCurrentUserId(userId ? Number(userId) : null);
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      initializeSocket(token);
-    } else {
-      console.error("Token is null");
-    }
-
-    const socket = getSocket();
-
-    socket.on("newMessage", (message: any) => {
-      setChatMessages((prevMessages) => [...prevMessages, message]);
-    });
-
-    return () => {
-      socket.off("newMessage");
-    };
-  }, []);
+    setFilteredFriends(friends.filter(
+      (friend) => !groupMembers.some((member) => member.user_id.userId === friend.userId)
+    ));
+  }, [friends, groupMembers]);
 
   const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop } = e.currentTarget;
@@ -134,7 +175,6 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
         setGroup(data);
         console.log("group data: ", data);
         console.log("currentUserId: ", currentUserId);
-        console.log(currentUserId === data.created_by.userId);
         setRenamedGroupName(data.group_name);
       } catch (error) {
         console.error("Failed to fetch group details:", error);
@@ -242,8 +282,9 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
     return false;
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
     }
   };
@@ -305,6 +346,7 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
       });
       message.success("You have left the group.");
       // Redirect or update UI as needed
+      router.push("/users/groups");
     } catch (error) {
       console.error("Failed to leave group:", error);
       message.error("Failed to leave group.");
@@ -320,9 +362,17 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
     };
   };
 
-  const filteredFriends = friends.filter(
-    (friend) => !groupMembers.some((member) => member.user_id.userId === friend.userId)
-  );
+  const handleOpenAddMembersModal = async () => {
+    await fetchFriends();
+    await fetchGroupMembers();
+    setShowAddMembersModal(true);
+  };
+
+  const handleShowDetailsModal = async () => {
+    await fetchFriends();
+    await fetchGroupMembers();
+    setShowGroupDetails(true);
+  }
 
   return (
     <div className="h-full flex">
@@ -342,26 +392,28 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
           />
           <div className="flex space-x-2">
             <h2 className="text-lg font-bold text-textGray">{group.group_name || "Unnamed Group"}</h2>
-            {group.created_by.userId === currentUserId && <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => handleRenameGroup()}
-            />}
+            {isGroupLeader() && (
+              <Button 
+                type="text" 
+                icon={<EditOutlined />} 
+                onClick={() => handleRenameGroup()}
+              />
+            )}
           </div>
           <div className="flex space-x-4 items-center">
-            {group.created_by.userId === currentUserId && (
+            {isGroupLeader() && (
               <Button
                 type="text"
                 icon={<PlusOutlined />}
                 className="text-textGray hover:text-highlight"
-                onClick={() => setShowAddMembersModal(true)}
+                onClick={() => handleOpenAddMembersModal()}
               />
             )}
             <Button
               type="text"
               icon={<SettingOutlined />}
               className="text-textGray hover:text-highlight"
-              onClick={() => setShowGroupDetails(true)}
+              onClick={() => handleShowDetailsModal()}
             />
           </div>
         </div>
@@ -381,7 +433,7 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
               >
                 <Col>
                   <div className={`flex items-start space-x-1 ${isCurrentUser ? "flex-row-reverse" : ""}`}>
-                    {!isCurrentUser && <Avatar src={avatar}>{!avatar && name.charAt(0)}</Avatar>}
+                    {!isCurrentUser && <Avatar src={avatar}></Avatar>}
                     <div>
                       {!isCurrentUser && <div className="text-xs text-gray-500 pb-1">{name}</div>}
                       <div
@@ -389,18 +441,18 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
                           isCurrentUser
                             ? "bg-secondary text-light"
                             : "bg-accent text-textGray"
-                        } p-3 rounded-lg max-w-xs`}
+                        } p-3 rounded-lg max-w-xs break-words`} // Ensure long messages break into new lines
                       >
                         {message.content && <p>{message.content}</p>}
-                        {message.imageUrls && message.imageUrls.map((url: string, index: number) => (
-                          <Image key={index} src={url} alt="Sent image" width={150} height={150} className="rounded-lg" />
-                        ))}
-                        {message.videoUrls && message.videoUrls.map((url: string, index: number) => (
-                          <video key={index} controls width="150" className="rounded-lg">
-                            <source src={url} type="video/mp4" />
+                        {message.media_url && message.media_type == "image" && (
+                          <Image src={message.media_url as string} alt="Sent image" width={150} height={150} className="rounded-lg" />
+                        )}
+                        {message.media_url && message.media_type == "video" && (
+                          <video controls className="rounded-lg">
+                            <source src={message.media_url as string} type="video/mp4" />
                             Your browser does not support the video tag.
                           </video>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </div>
@@ -419,13 +471,14 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
         {/* Message Input */}
         <div className="bg-primary p-4 flex flex-col space-y-2">
           <div className="flex items-center space-x-2">
-            <Input
+            <TextArea
               placeholder="Type a message..."
               className="flex-1"
               size="large"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
+              autoSize={{ minRows: 1, maxRows: 6 }} // Expandable textarea
             />
             <Upload
               showUploadList={false}
@@ -517,28 +570,7 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
               itemLayout="horizontal"
               dataSource={groupMembers}
               renderItem={(member) => (
-                <List.Item
-                  actions={
-                    group.created_by.userId === currentUserId
-                      ? [
-                          <Popconfirm
-                            title="Are you sure you want to remove this member?"
-                            onConfirm={() =>
-                              handleRemoveMember(member.group_member_id)
-                            }
-                            okText="Yes"
-                            cancelText="No"
-                          >
-                            <Button
-                              type="text"
-                              icon={<DeleteOutlined />}
-                              className="text-danger hover:text-danger-dark"
-                            />
-                          </Popconfirm>,
-                        ]
-                      : []
-                  }
-                >
+                <List.Item>
                   <List.Item.Meta
                     avatar={
                       <Avatar src={member.user_id.avatarUrl}>
@@ -584,6 +616,7 @@ const GroupPage = ({ params }: { params: { id: string }; }) => {
           dataSource={filteredFriends}
           renderItem={(friend) => (
             <List.Item
+              key={friend.userId}
               actions={[
                 <Button
                   type="text"

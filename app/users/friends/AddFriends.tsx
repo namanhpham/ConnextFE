@@ -45,6 +45,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ currentUserId, refreshFriendsLi
       await friendsApiService.createFriendRequest(userId);
       message.success(`Friend request sent to user ${userId}`);
       refreshFriendsList();
+      setAllUsers((prevUsers) => prevUsers.filter((user) => user.userId !== userId));
     } catch (error) {
       message.error("Failed to send friend request");
     }

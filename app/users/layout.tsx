@@ -67,19 +67,19 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
             type="text"
             icon={<MessageOutlined />}
             onClick={() => router.push("/users/chat")}
-            className={pathname.startsWith("/users/chat") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+            className={pathname.startsWith("/users/chat") ? "bg-secondary text-white !hover:bg-primary" : ""}
           />
           <Button
             type="text"
             icon={<UserOutlined />}
             onClick={() => router.push("/users/friends")}
-            className={pathname.startsWith("/users/friends") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+            className={pathname.startsWith("/users/friends") ? "bg-secondary text-white !hover:bg-primary" : ""}
           />
           <Button
             type="text"
             icon={<TeamOutlined />}
             onClick={() => router.push("/users/groups")}
-            className={pathname.startsWith("/users/groups") ? "bg-secondary text-white !hover:bg-secondary !hover:text-white" : ""}
+            className={pathname.startsWith("/users/groups") ? "bg-secondary text-white !hover:bg-primary" : ""}
           />
         </div>
       </Sider>
