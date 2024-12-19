@@ -10,6 +10,7 @@ import { authApiService } from "../api/apiService";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import { MessageOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons"; // Import icons
 import { disconnectSocket } from "../utils/socket";
+import AuthenticatedRoute from "../components/AuthenticatedRoute";
 
 const { Sider, Content } = Layout;
 
@@ -56,67 +57,69 @@ const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <Layout className="h-screen text-black">
-      {/* Smaller Sidebar for profile navigation */}
-      <Sider width={80} className="bg-primary flex flex-col items-center p-4 border-r">
-        <Dropdown overlay={userMenu} trigger={["click"]}>
-          <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
-        </Dropdown>
-        <div className="flex flex-col items-center space-y-4 mt-auto">
-          <Button
-            type="text"
-            icon={<MessageOutlined />}
-            onClick={() => router.push("/users/chat")}
-            className={pathname.startsWith("/users/chat") ? "bg-secondary text-white !hover:bg-primary" : ""}
-          />
-          <Button
-            type="text"
-            icon={<UserOutlined />}
-            onClick={() => router.push("/users/friends")}
-            className={pathname.startsWith("/users/friends") ? "bg-secondary text-white !hover:bg-primary" : ""}
-          />
-          <Button
-            type="text"
-            icon={<TeamOutlined />}
-            onClick={() => router.push("/users/groups")}
-            className={pathname.startsWith("/users/groups") ? "bg-secondary text-white !hover:bg-primary" : ""}
-          />
-        </div>
-      </Sider>
+    <AuthenticatedRoute>
+      <Layout className="h-screen text-black">
+        {/* Smaller Sidebar for profile navigation */}
+        <Sider width={80} className="bg-primary flex flex-col items-center p-4 border-r">
+          <Dropdown overlay={userMenu} trigger={["click"]}>
+            <Avatar src={avatarUrl} className="cursor-pointer mb-4" />
+          </Dropdown>
+          <div className="flex flex-col items-center space-y-4 mt-auto">
+            <Button
+              type="text"
+              icon={<MessageOutlined />}
+              onClick={() => router.push("/users/chat")}
+              className={pathname.startsWith("/users/chat") ? "bg-secondary text-white !hover:bg-primary" : ""}
+            />
+            <Button
+              type="text"
+              icon={<UserOutlined />}
+              onClick={() => router.push("/users/friends")}
+              className={pathname.startsWith("/users/friends") ? "bg-secondary text-white !hover:bg-primary" : ""}
+            />
+            <Button
+              type="text"
+              icon={<TeamOutlined />}
+              onClick={() => router.push("/users/groups")}
+              className={pathname.startsWith("/users/groups") ? "bg-secondary text-white !hover:bg-primary" : ""}
+            />
+          </div>
+        </Sider>
 
-      {/* Drawer for smaller screens */}
-      <Drawer
-        title="Chats"
-        placement="left"
-        onClose={() => setIsDrawerOpen(false)}
-        open={isDrawerOpen}
-        className="md:hidden"
-      >
-        <Menu
-          theme="light"
-          mode="inline"
-          items={users.map((user) => ({
-            key: user.id,
-            label: (
-              <Link href={`/users/chat/${user.id}`} onClick={() => setIsDrawerOpen(false)}>
-                <div className="flex items-center space-x-2">
-                  <Avatar>{user.name.charAt(0)}</Avatar>
-                  <div className="flex-1">
-                    <span className="text-textGray font-semibold block truncate">{user.name}</span>
+        {/* Drawer for smaller screens */}
+        <Drawer
+          title="Chats"
+          placement="left"
+          onClose={() => setIsDrawerOpen(false)}
+          open={isDrawerOpen}
+          className="md:hidden"
+        >
+          <Menu
+            theme="light"
+            mode="inline"
+            items={users.map((user) => ({
+              key: user.id,
+              label: (
+                <Link href={`/users/chat/${user.id}`} onClick={() => setIsDrawerOpen(false)}>
+                  <div className="flex items-center space-x-2">
+                    <Avatar>{user.name.charAt(0)}</Avatar>
+                    <div className="flex-1">
+                      <span className="text-textGray font-semibold block truncate">{user.name}</span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ),
-          }))}
-        />
-      </Drawer>
+                </Link>
+              ),
+            }))}
+          />
+        </Drawer>
 
-      {/* Main Layout */}
-      <Layout>
-        {/* Main Content */}
-        <Content className="overflow-y-auto">{children}</Content>
+        {/* Main Layout */}
+        <Layout>
+          {/* Main Content */}
+          <Content className="overflow-y-auto">{children}</Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </AuthenticatedRoute>
   );
 };
 

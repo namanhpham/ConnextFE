@@ -81,9 +81,12 @@ const FriendsPage: React.FC = () => {
   const fetchReceivedFriendRequests = async () => {
     const result = await friendsApiService.getReceivedFriendRequests();
     const incomingFriendList = result.map((friend: any) => {
+      const friendShipId = friend.friendship_id;
       if (friend.user_id.userId === Number(currentUserId)) {
+        friend.friend_user_id.friendship_id = friendShipId;
         return friend.friend_user_id;
       } else {
+        friend.user_id.friendship_id = friendShipId;
         return friend.user_id;
       }
     });

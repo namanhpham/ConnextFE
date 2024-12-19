@@ -94,7 +94,7 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 
   const formatLastMessageTime = (timestamp: string | null) => {
     if (!timestamp) return "";
-    const messageDate = dayjs(timestamp);
+    const messageDate = dayjs(timestamp).add(7, 'hour');
     const now = dayjs();
     if (messageDate.isSame(now, "day")) {
       return "Today";
