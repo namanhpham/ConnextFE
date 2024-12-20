@@ -127,10 +127,16 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 
     const recipientId = participant.userId;
 
-    const lastMessage =
+    let lastMessage =
       conversation.last_message && conversation.last_message.length > 20
         ? conversation.last_message.substring(0, 20) + "..."
         : conversation.last_message || "No messages yet";
+    
+    if (conversation.media_type === "file" || conversation.media_type === "image" || conversation.media_type === "video") {
+      lastMessage = "You received a new attachment";
+    } else if (lastMessage.startsWith("https") || lastMessage.startsWith("http") || lastMessage === "") {
+      lastMessage = "Attachment";
+    }
 
     const lastMessageTime = formatLastMessageTime(conversation.last_message_sent_at);
 
